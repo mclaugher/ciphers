@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference · The Alphabet as Numbers (A=0 … Z=25)</title>
+<style>
+  :root { --ink:#111; --paper:#fffff8; --accent:#5b3a86; --muted:#6b6b60; --rule:#dcdccb; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.5;
+    max-width: 44rem; margin: 3rem auto; padding: 0 1.4rem;
+  }
+  h1 { font-size: 1.7rem; line-height: 1.2; font-weight: 600; margin: 0 0 .2rem; }
+  .kicker { font-variant: small-caps; letter-spacing: .08em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .6rem; }
+  p { margin: .8rem 0; }
+  .lead { color: var(--muted); font-style: italic; }
+  table.grid { border-collapse: collapse; width: 100%; margin: 1.4rem 0; font-feature-settings: "tnum"; }
+  table.grid td { border: 1px solid var(--rule); text-align: center; padding: .35rem 0; width: calc(100%/13); }
+  table.grid .letter { font-weight: 600; font-size: 1.15rem; font-family: "SF Mono", "Menlo", Consolas, monospace; }
+  table.grid .num { color: var(--accent); font-size: .85rem; font-family: "SF Mono","Menlo",Consolas,monospace; }
+  .formula { background:#f4f4ea; border:1px solid var(--rule); border-radius:8px;
+             padding: .9rem 1.1rem; margin: 1.2rem 0; }
+  .formula code, code.mono { font-family: "SF Mono","Menlo",Consolas,monospace; font-size: .92em; }
+  .example { border-left: 3px solid var(--accent); padding: .2rem 0 .2rem 1rem; margin: 1.2rem 0; }
+  .example .row { font-family: "SF Mono","Menlo",Consolas,monospace; letter-spacing: .14em; }
+  .note { color: var(--muted); font-size: .9rem; }
+  footer { margin-top: 2.2rem; padding-top: 1rem; border-top: 1px solid var(--rule);
+           color: var(--muted); font-size: .85rem; }
+  a { color: var(--accent); }
+  @media print {
+    body { margin: 0; max-width: none; font-size: 12pt; }
+    .formula { background: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · Reference Card</div>
+  <h1>The Alphabet as Numbers</h1>
+  <p class="lead">A = 0, B = 1, … Z = 25. The single most reusable tool in classical cryptography — keep it beside you.</p>
+
+  <p>Most pen-and-paper ciphers are really <strong>arithmetic on letters</strong>. The
+  moment you number the alphabet 0–25, shifting, adding a keyword, or multiplying becomes
+  ordinary maths done <em>modulo 26</em> (i.e. wrap around after Z back to A).</p>
+
+  <table class="grid" aria-label="Letter to number table">
+    <tr>
+      <td><div class="letter">A</div><div class="num">0</div></td>
+      <td><div class="letter">B</div><div class="num">1</div></td>
+      <td><div class="letter">C</div><div class="num">2</div></td>
+      <td><div class="letter">D</div><div class="num">3</div></td>
+      <td><div class="letter">E</div><div class="num">4</div></td>
+      <td><div class="letter">F</div><div class="num">5</div></td>
+      <td><div class="letter">G</div><div class="num">6</div></td>
+      <td><div class="letter">H</div><div class="num">7</div></td>
+      <td><div class="letter">I</div><div class="num">8</div></td>
+      <td><div class="letter">J</div><div class="num">9</div></td>
+      <td><div class="letter">K</div><div class="num">10</div></td>
+      <td><div class="letter">L</div><div class="num">11</div></td>
+      <td><div class="letter">M</div><div class="num">12</div></td>
+    </tr>
+    <tr>
+      <td><div class="letter">N</div><div class="num">13</div></td>
+      <td><div class="letter">O</div><div class="num">14</div></td>
+      <td><div class="letter">P</div><div class="num">15</div></td>
+      <td><div class="letter">Q</div><div class="num">16</div></td>
+      <td><div class="letter">R</div><div class="num">17</div></td>
+      <td><div class="letter">S</div><div class="num">18</div></td>
+      <td><div class="letter">T</div><div class="num">19</div></td>
+      <td><div class="letter">U</div><div class="num">20</div></td>
+      <td><div class="letter">V</div><div class="num">21</div></td>
+      <td><div class="letter">W</div><div class="num">22</div></td>
+      <td><div class="letter">X</div><div class="num">23</div></td>
+      <td><div class="letter">Y</div><div class="num">24</div></td>
+      <td><div class="letter">Z</div><div class="num">25</div></td>
+    </tr>
+  </table>
+
+  <div class="formula">
+    <strong>Caesar shift by <code class="mono">n</code></strong><br>
+    Encrypt: <code class="mono">E(x) = (x + n) mod 26</code><br>
+    Decrypt: <code class="mono">D(x) = (x &minus; n) mod 26</code><br>
+    <span class="note">…where <code class="mono">x</code> is the letter's number above, and
+    <code class="mono">mod 26</code> means "wrap past Z back to A."</span>
+  </div>
+
+  <div class="example">
+    <p><strong>Worked example — shift of 3 (Caesar's own).</strong></p>
+    <div class="row">H&nbsp;→&nbsp;7 + 3 = 10 →&nbsp;<strong>K</strong></div>
+    <div class="row">A&nbsp;→&nbsp;0 + 3 = 3 →&nbsp;<strong>D</strong></div>
+    <div class="row">Y&nbsp;→&nbsp;24 + 3 = 27 → 27 &minus; 26 = 1 →&nbsp;<strong>B</strong>&nbsp;<span class="note">(wrapped)</span></div>
+  </div>
+
+  <p class="note">The wrap on <code class="mono">Y → B</code> is the whole trick of modular
+  arithmetic: 27 is past the end of the alphabet, so subtract 26 to come back around.</p>
+
+  <footer>
+    Reference card for the <strong>Ciphers</strong> teaching workspace ·
+    Used by <a href="../lessons/0001-the-caesar-cipher.html">Lesson 01 — The Caesar Cipher</a>.<br>
+    Formula &amp; convention per <a href="https://en.wikipedia.org/wiki/Caesar_cipher">Wikipedia: Caesar cipher</a>.
+    Print this card (⌘P) and keep it handy.
+  </footer>
+</body>
+</html>
