@@ -68,7 +68,9 @@ memory. Wisdom comes from the communities at the bottom.
   (Wikipedia) for the key-reuse history. See `reference/one-time-pad.html`.
 - ~~Lesson 06 (transposition) source~~ — **done**: Wikipedia Transposition cipher + Scytale +
   Confusion and diffusion; see `reference/transposition-ciphers.html`.
-- Modern thread (key exchange / public key, after transposition): math-appetite still UNKNOWN —
-  gauge before committing to Diffie–Hellman/RSA, which lean on modular exponentiation. Lesson 06's
-  teacher box explicitly asks the user to pick the "light-on-maths story" vs "work the arithmetic"
-  road; use their answer. Need a vetted Diffie–Hellman/RSA source + the classic paint-mixing analogy.
+- ~~Diffie–Hellman source + paint analogy~~ — **done** (Wikipedia DH + Public-key cryptography;
+  Computerphile DH video as primary watch). Built intuition-first per MISSION (heavy number theory
+  out of scope); a tiny by-hand example (p=23, g=5) carries the mechanic. Math-appetite question
+  is now posed *inside* Lesson 06's teacher box (story vs by-hand arithmetic) — still UNANSWERED.
+- Lesson 08 (RSA): need a gentle source on public/private keys + the trapdoor (factoring is hard)
+  and a small worked RSA example. Keep proofs out of scope; lead with the lock/open-box intuition.

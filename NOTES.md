@@ -79,6 +79,13 @@ Working notes on how to teach this learner. Not a journal — preferences and co
     light-on-maths *story* of Diffie–Hellman/RSA, vs working the modular arithmetic by hand. This
     finally surfaces the long-open math-appetite question. DO use their answer to shape Lesson 07.
 
+- Lesson 07 — Sharing a Secret in the Open (Diffie–Hellman): created. First MODERN lesson. Paint-
+  mixing analogy (visual swatches) + an interactive DH simulator (public p=23, g=5; user sets Alice's
+  a and Bob's b; shows A, B, both shared computations agreeing, and the eavesdropper's view). Covers
+  one-way functions, discrete-log hardness, the public/private split, HTTPS. Built `diffie-hellman.html`
+  reference. Honoured MISSION's "by hand" + "no heavy number theory": intuition-first, tiny worked
+  example only. Tees up Lesson 08 (RSA).
+
 ## Pacing observations
 - 2026-06-15: User is in "keep building" mode (batch-consuming lessons) rather than working through
   the interactives between sessions. Lessons are accumulating faster than evidence of mastery. Not a

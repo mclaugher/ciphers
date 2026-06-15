@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fffff8">
+<title>Reference · Diffie–Hellman Key Exchange</title>
+<style>
+  :root { --ink:#111; --paper:#fffff8; --accent:#5b3a86; --accent2:#9a6a00;
+          --muted:#6b6b60; --rule:#dcdccb; --panel:#f4f4ea; --alice:#9a2a55; --bob:#1d6b7a;
+          --mono:"SF Mono","Menlo",Consolas,"Liberation Mono",monospace; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.5; max-width: 44rem; margin: 3rem auto; padding: 0 1.4rem;
+  }
+  h1 { font-size: 1.7rem; line-height: 1.2; font-weight: 600; margin: 0 0 .2rem; }
+  h2 { font-size: 1.05rem; font-weight: 600; margin: 1.7rem 0 .4rem; color: var(--accent); }
+  .kicker { font-variant: small-caps; letter-spacing: .08em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .6rem; }
+  p { margin: .7rem 0; }
+  .lead { color: var(--muted); font-style: italic; }
+  code, .mono { font-family: var(--mono); }
+  table.steps { border-collapse:collapse; width:100%; margin:.7rem 0; font-size:.95rem; }
+  table.steps th, table.steps td { border:1px solid var(--rule); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  table.steps th { background:var(--panel); font-size:.8rem; font-variant:small-caps; letter-spacing:.05em; }
+  table.steps .a { color:var(--alice); font-family:var(--mono); }
+  table.steps .b { color:var(--bob); font-family:var(--mono); }
+  .formula { font-family: var(--mono); font-size:.9rem; background:#fff; border:1px dashed #c7c7b4;
+             border-radius:6px; padding:.5rem .7rem; margin:.5rem 0; }
+  .pub { color:var(--accent); font-weight:700; } .sec { color:#9a2a2a; font-weight:700; }
+  .note { color: var(--muted); font-size:.9rem; }
+  footer { margin-top:2.2rem; padding-top:1rem; border-top:1px solid var(--rule);
+           color:var(--muted); font-size:.85rem; }
+  a { color: var(--accent); }
+  @media (max-width: 34rem) { body { font-size:17px; margin:1.4rem auto; padding:0 1.05rem; } h1 { font-size:1.45rem; } }
+  @media print { body { margin:0; max-width:none; font-size:11pt; } .formula { background:none; } }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · Reference Card</div>
+  <h1>Diffie–Hellman Key Exchange</h1>
+  <p class="lead">How two people who have never met agree on a shared secret over a tapped line —
+  publishing everything except their two private numbers. (Diffie, Hellman &amp; Merkle, 1976.)</p>
+
+  <h2>The one-way function</h2>
+  <div class="formula">forward (easy):   A = g<sup>a</sup> mod p
+backward (hard):  given A, g, p — find a   ← the "discrete logarithm"</div>
+  <p class="note">Easy to compute, infeasible to reverse for large <code class="mono">p</code>. That
+  asymmetry is the whole security. (Mixing paint is easy; un-mixing is not.)</p>
+
+  <h2>The exchange</h2>
+  <table class="steps">
+    <tr><th>Step</th><th>Alice</th><th>Bob</th></tr>
+    <tr><td>Agree in public</td><td colspan="2">a prime <span class="pub">p</span> and base <span class="pub">g</span> — anyone may know these</td></tr>
+    <tr><td>Pick a private secret</td><td class="a">a</td><td class="b">b</td></tr>
+    <tr><td>Send (in the open)</td><td class="a">A = g<sup>a</sup> mod p</td><td class="b">B = g<sup>b</sup> mod p</td></tr>
+    <tr><td>Compute shared secret</td><td class="a">s = B<sup>a</sup> mod p</td><td class="b">s = A<sup>b</sup> mod p</td></tr>
+  </table>
+  <p>Both land on the same number because
+  <span class="mono">(g<sup>b</sup>)<sup>a</sup> = g<sup>ab</sup> = (g<sup>a</sup>)<sup>b</sup> (mod p)</span>.
+  The shared secret <span class="mono">g<sup>ab</sup> mod p</span> is never transmitted.</p>
+
+  <h2>Worked example (tiny numbers)</h2>
+  <div class="formula">public:  p = <span class="pub">23</span>,  g = <span class="pub">5</span>
+Alice:   a = <span class="sec">6</span>   →  A = 5<sup>6</sup>  mod 23 = 8
+Bob:     b = <span class="sec">15</span>  →  B = 5<sup>15</sup> mod 23 = 19
+Alice:   s = 19<sup>6</sup>  mod 23 = <strong>2</strong>
+Bob:     s = 8<sup>15</sup>  mod 23 = <strong>2</strong>   ✓ same secret</div>
+  <p class="note">Real Diffie–Hellman uses primes hundreds of digits long, so the discrete-log shortcut
+  is hopeless. The eavesdropper sees <code class="mono">p, g, A, B</code> — never <code class="mono">a, b,</code> or <code class="mono">s</code>.</p>
+
+  <h2>Why it mattered</h2>
+  <p>It split the key into a <strong>public</strong> half and a <strong>private</strong> half — the
+  birth of <strong>public-key cryptography</strong>. The same handshake secures <code class="mono">https://</code>
+  today. One year later, RSA extended the idea from key-exchange to full encryption.</p>
+
+  <footer>
+    Reference card for the <strong>Ciphers</strong> teaching workspace ·
+    Used by <a href="../lessons/0007-sharing-a-secret-in-the-open.html">Lesson 07 — Sharing a Secret in the Open</a>.<br>
+    <strong>Sources:</strong> <a href="https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange">Diffie–Hellman key exchange</a>,
+    <a href="https://en.wikipedia.org/wiki/Public-key_cryptography">Public-key cryptography</a> — Wikipedia.
+  </footer>
+</body>
+</html>
