@@ -25,6 +25,16 @@ memory. Wisdom comes from the communities at the bottom.
   classical system. Use for: "what cipher is this?" and verifying answers.
 - [Boxentriq — Frequency Analysis](https://www.boxentriq.com/code-breaking/frequency-analysis)
   Use for: letter-frequency tooling when we reach substitution-cipher cracking.
+- [Wikipedia — Substitution cipher](https://en.wikipedia.org/wiki/Substitution_cipher)
+  Use for: the one-to-one letter mapping and the 26! ≈ 4×10²⁶ keyspace figure.
+- [English Letter Frequencies — Practical Cryptography](http://practicalcryptography.com/cryptanalysis/letter-frequencies-various-languages/english-letter-frequencies/)
+  Canonical single-letter frequency table (E ≈ 12.7%, ETAOIN order). Use for: the
+  frequency-reference card and any frequency claim in lessons.
+- [English Letter & Bigram Counts — Peter Norvig (Mayzner revisited)](https://norvig.com/mayzner.html)
+  Large-corpus letter, digraph, and word counts. Use for: digraph/word-shape facts (TH, HE, THE).
+- [Arab Code Breakers — Simon Singh](https://simonsingh.net/media/articles/maths-and-science/arab-code-breakers/)
+  & [al-Kindi's *Manuscript on Deciphering Cryptographic Messages* (c. 850 CE) — History of Information](https://historyofinformation.com/detail.php?id=3162)
+  Use for: the origin of frequency analysis (al-Kindi, Baghdad, ~850 CE), Lesson 02's primary source.
 
 ## Wisdom (Communities)
 
@@ -40,5 +50,6 @@ memory. Wisdom comes from the communities at the bottom.
 ## Gaps
 - No single vetted "classical → modern" textbook chosen yet beyond Singh. Revisit when we
   approach modern crypto.
-- No frequency-table reference doc built yet — create one when Lesson 2 (substitution +
-  frequency analysis) lands.
+- ~~No frequency-table reference doc built yet~~ — **done**: `reference/english-letter-frequency.html`
+  (Lesson 02). Verify its percentages against a second corpus if precision ever matters.
+- No Vigenère / Kasiski source vetted yet — find one before Lesson 03.

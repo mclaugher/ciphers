@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fffff8">
+<title>Lesson 02 · Substitution &amp; Frequency Analysis</title>
+<style>
+  :root {
+    --ink:#111; --paper:#fffff8; --accent:#5b3a86; --accent2:#9a6a00;
+    --muted:#6b6b60; --rule:#dcdccb; --good:#1d6b3a; --bad:#9a2a2a;
+    --panel:#f4f4ea; --bar:#9b86c4; --bar2:#e7e0f2;
+    --mono:"SF Mono","Menlo",Consolas,"Liberation Mono",monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.58;
+    max-width: 42rem; margin: 3rem auto 5rem; padding: 0 1.4rem;
+  }
+  .kicker { font-variant: small-caps; letter-spacing: .09em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .5rem; }
+  h1 { font-size: 2.1rem; line-height: 1.12; font-weight: 600; margin: 0 0 .3rem; }
+  h2 { font-size: 1.3rem; font-weight: 600; margin: 2.4rem 0 .5rem;
+       border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  .lead { color: var(--muted); font-style: italic; font-size: 1.06rem; }
+  p { margin: .85rem 0; }
+  strong { font-weight: 600; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  sup a { text-decoration: none; font-size: .7em; padding: 0 1px; }
+  code, .mono { font-family: var(--mono); }
+  .cipher { font-family: var(--mono); letter-spacing: .12em; background: #efeede;
+            padding: .08em .3em; border-radius: 4px; }
+  .big { font-family: var(--mono); font-weight: 700; color: var(--accent);
+         word-break: break-all; line-height: 1.35; }
+  .keyidea { border-left: 4px solid var(--accent2); background: #fcf7ec;
+             padding: .7rem 1rem; margin: 1.4rem 0; border-radius: 0 8px 8px 0; }
+  .keyidea .tag { font-variant: small-caps; letter-spacing: .07em; color: var(--accent2);
+                  font-size: .78rem; display:block; margin-bottom: .2rem; }
+  /* interactive panels */
+  .panel { border: 1px solid var(--rule); background: var(--panel);
+           border-radius: 10px; padding: 1.1rem 1.2rem; margin: 1.4rem 0; }
+  .panel h3 { margin: 0 0 .2rem; font-size: 1.02rem; font-weight: 600; }
+  .panel .hint { color: var(--muted); font-size: .86rem; margin: 0 0 .9rem; }
+  .row { display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; margin:.5rem 0; }
+  label.lbl { font-size: .9rem; color: var(--muted); }
+  input[type=text] { font-family: var(--mono); font-size: 1rem; padding: .45rem .55rem;
+                     border: 1px solid #c7c7b4; border-radius: 6px; background:#fff;
+                     flex: 1 1 200px; letter-spacing: .06em; }
+  button { font: inherit; font-size: .92rem; cursor: pointer; border:1px solid var(--accent);
+           background:#fff; color: var(--accent); border-radius: 6px; padding: .4rem .8rem; }
+  button:hover { background: var(--accent); color:#fff; }
+  .map { font-family: var(--mono); font-size: .95rem; line-height: 1.7; overflow-x:auto;
+         white-space: nowrap; letter-spacing: .19em; }
+  .map .from { color: var(--muted); }
+  .map .to   { color: var(--accent); font-weight: 700; }
+  .out { font-family: var(--mono); font-size: 1.12rem; letter-spacing: .14em;
+         background:#fff; border:1px dashed #c7c7b4; border-radius:6px; padding:.5rem .6rem;
+         margin-top:.5rem; word-break: break-word; min-height: 1.4em; }
+  /* frequency bars in the cracker */
+  .freqbars { margin:.6rem 0 .2rem; }
+  .freqbars .fb { display:grid; grid-template-columns:1.3rem 1fr 1.6rem; align-items:center;
+                  gap:.4rem; margin:.1rem 0; }
+  .freqbars .fl { font-family: var(--mono); font-weight:700; text-align:center; }
+  .freqbars .ft { background: var(--bar2); border-radius:3px; height:.85rem; overflow:hidden; }
+  .freqbars .ff { background: var(--bar); height:100%; }
+  .freqbars .fc { font-family: var(--mono); font-size:.74rem; color:var(--muted); text-align:right; }
+  /* substitution solver grid */
+  .ct { font-family: var(--mono); font-size:1.05rem; letter-spacing:.18em; line-height:1.7;
+        background:#fff; border:1px dashed #c7c7b4; border-radius:6px; padding:.5rem .6rem;
+        word-break: break-word; }
+  .solved { font-family: var(--mono); font-size:1.1rem; letter-spacing:.18em; line-height:1.7;
+            color: var(--accent); font-weight:700; min-height:1.4em; word-break: break-word;
+            margin-top:.5rem; }
+  .solved .blank { color:#c7c7b4; font-weight:400; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(2.4rem, 1fr));
+          gap:.35rem; margin:.7rem 0; }
+  .cell { text-align:center; }
+  .cell .cl { font-family: var(--mono); font-weight:700; font-size:.95rem; }
+  .cell .cn { font-size:.62rem; color:var(--muted); }
+  .cell input { width:100%; font-family: var(--mono); text-transform:uppercase; text-align:center;
+                font-size:.95rem; padding:.2rem 0; border:1px solid #c7c7b4; border-radius:5px;
+                background:#fff; letter-spacing:0; }
+  .cell input.dupe { border-color: var(--bad); background:#fbeeee; }
+  .feedback { margin-top:.6rem; font-size:.95rem; min-height:1.2em; }
+  .feedback.good { color: var(--good); }
+  .feedback.bad  { color: var(--bad); }
+  /* quiz */
+  .quiz { margin: 1rem 0 0; }
+  .q { margin: 1.3rem 0; }
+  .q .stem { font-weight: 600; margin-bottom: .5rem; }
+  .opts { display:flex; flex-direction:column; gap:.45rem; }
+  .opt { text-align:left; border:1px solid #c7c7b4; background:#fff; color:var(--ink);
+         border-radius:7px; padding:.5rem .7rem; font-size:.97rem; }
+  .opt:hover { border-color: var(--accent); background:#faf7ff; color: var(--ink); }
+  .opt.correct { border-color: var(--good); background:#eef7f0; color:#14502b; }
+  .opt.wrong   { border-color: var(--bad);  background:#f9eded; color:#6e1f1f; }
+  .q .explain { font-size:.88rem; color: var(--muted); margin-top:.45rem; min-height:1em; }
+  .q .explain.good { color: var(--good); }
+  .q .explain.bad  { color: var(--bad); }
+  .primary { border:1px solid var(--accent); border-radius:10px; padding:1rem 1.2rem;
+             margin:1.6rem 0; background:#faf7ff; }
+  .primary .tag { font-variant: small-caps; letter-spacing:.07em; color:var(--accent);
+                  font-size:.78rem; }
+  .teacher { background:#fcf7ec; border:1px dashed var(--accent2); border-radius:10px;
+             padding:.9rem 1.1rem; margin:1.6rem 0; font-size:.95rem; }
+  .nav { display:flex; gap:1rem; flex-wrap:wrap; margin-top:2rem; }
+  .card { flex:1 1 14rem; border:1px solid var(--rule); border-radius:10px; padding:.9rem 1rem;
+          background:#fff; }
+  .card .tag { font-variant: small-caps; letter-spacing:.07em; color:var(--muted); font-size:.74rem; }
+  .card .title { font-weight:600; margin:.15rem 0; }
+  .card .desc { font-size:.86rem; color:var(--muted); }
+  footer { margin-top:2.6rem; padding-top:1rem; border-top:1px solid var(--rule);
+           color:var(--muted); font-size:.82rem; }
+  footer ol { margin:.4rem 0; padding-left:1.3rem; }
+  footer a { color: var(--accent); }
+  /* phones & small screens */
+  @media (max-width: 34rem) {
+    body { font-size: 17px; line-height: 1.5; margin: 1.4rem auto 3rem; padding: 0 1.05rem; }
+    h1 { font-size: 1.65rem; }
+    h2 { font-size: 1.18rem; margin: 1.9rem 0 .4rem; }
+    .lead { font-size: 1rem; }
+    .panel, .primary, .teacher, .keyidea { padding: .85rem .9rem; }
+    .map { font-size: .78rem; letter-spacing: .11em; }
+    .row { gap: .5rem; }
+    input[type=text] { flex: 1 1 100%; font-size: 16px; padding: .6rem .6rem; }
+    .row button { flex: 1 1 100%; padding: .7rem .8rem; }
+    .opt { padding: .7rem .8rem; font-size: 1rem; }
+    .nav { flex-direction: column; gap: .8rem; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(2.1rem, 1fr)); }
+  }
+  @media print {
+    body { margin:0; max-width:none; font-size:11pt; }
+    .panel, .primary, .teacher, .card { background:none !important; }
+    button, .cell input { display:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · Lesson 02 · Classical, by hand</div>
+  <h1>Substitution &amp; Frequency Analysis</h1>
+  <p class="lead">Caesar fell because it had only 25 keys. So we build a cipher with
+  <em>four hundred septillion</em> keys instead — and watch it fall anyway, to a ninth-century
+  idea you can use with a pencil.</p>
+
+  <p><strong>Where we left off.</strong> In <a href="0001-the-caesar-cipher.html">Lesson 01</a> you
+  cracked a Caesar cipher by trying all 25 shifts. The lesson there was Kerckhoffs's principle:
+  judge a cipher by its <em>keys</em>. The obvious fix for Caesar is to give it more keys. This
+  lesson follows that fix to its limit — and finds the limit isn't where you'd expect.</p>
+
+  <h2>1 · From a shift to a full scramble</h2>
+  <p>A Caesar cipher slides the whole alphabet by one amount, so the cipher alphabet keeps its
+  order. A <strong>monoalphabetic substitution cipher</strong> drops that rule: each letter may
+  map to <em>any</em> letter, in any order — as long as the mapping is one-to-one.<sup><a href="#s1">1</a></sup>
+  The key is no longer a single number; it's the entire scrambled alphabet.</p>
+
+  <div class="panel">
+    <h3>Build a cipher alphabet</h3>
+    <p class="hint">The top row is plain; the bottom row is the secret key. Shuffle it, then type a
+    message and watch each letter follow its own private wire.</p>
+    <div class="map" id="sub-map"></div>
+    <div class="row" style="margin-top:.7rem">
+      <button id="shuffle" type="button">Shuffle the key</button>
+      <button id="reset-qwerty" type="button">Use a memorable key</button>
+    </div>
+    <div class="row" style="margin-top:.4rem">
+      <label class="lbl" for="sub-in">Your message:</label>
+      <input type="text" id="sub-in" value="MEET ME AT THE BRIDGE AT NOON" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="out" id="sub-out" aria-live="polite"></div>
+  </div>
+
+  <h2>2 · The keyspace explodes</h2>
+  <p>How many keys is that? The first plaintext letter can map to any of 26 ciphertext letters, the
+  second to any of the 25 left, the third to any of the remaining 24, and so on. Multiply them:
+  <span class="cipher">26 × 25 × 24 × … × 1</span>, written <span class="cipher">26!</span> ("26
+  factorial").<sup><a href="#s1">1</a></sup> That comes to:</p>
+
+  <p class="big">403,291,461,126,605,635,584,000,000</p>
+
+  <p>Four hundred septillion keys — about <strong>4 × 10<sup>26</sup></strong>.<sup><a href="#s1">1</a></sup>
+  Caesar's brute-force attack is now hopeless: an attacker checking a <em>million</em> keys every
+  second would still need over <strong>ten trillion years</strong> to try them all — far longer than
+  the age of the universe.<sup><a href="#s2">2</a></sup></p>
+
+  <div class="keyidea">
+    <span class="tag">Key idea</span>
+    A huge keyspace is <em>necessary</em> for security, but it is not <em>sufficient</em>. Brute
+    force is only one way in. A cipher with more keys than there are atoms in your body can still
+    leak its secret through a side door — if its output carries a pattern.
+  </div>
+
+  <h2>3 · The side door: language has a fingerprint</h2>
+  <p>Here is the flaw. In a substitution cipher, one plaintext letter always becomes the
+  <em>same</em> ciphertext letter. So whatever is special about a letter in English travels intact
+  into the ciphertext. And the letter <span class="cipher">E</span> is very special: it is the most
+  common letter in English, about <strong>12.7%</strong> of all text. <span class="cipher">T</span>,
+  <span class="cipher">A</span>, <span class="cipher">O</span>, <span class="cipher">I</span>,
+  <span class="cipher">N</span> follow.<sup><a href="#s3">3</a></sup></p>
+
+  <p>So the most common letter in the ciphertext is probably <span class="cipher">E</span> in
+  disguise. Count the letters, line up the counts against English, and the key starts to dissolve —
+  no matter how many keys there were. This is <strong>frequency analysis</strong>, first written
+  down by the Arab polymath <strong>al-Kindi</strong> in Baghdad around <strong>850 CE</strong>, in
+  the oldest known book on codebreaking.<sup><a href="#s4">4</a></sup> It is the single most
+  important idea in the history of cryptanalysis.</p>
+
+  <div class="keyidea">
+    <span class="tag">Kerckhoffs, sharpened</span>
+    Counting keys is not enough. You must also ask: <em>does the ciphertext betray the structure of
+    the plaintext?</em> Substitution scrambles the alphabet but preserves letter frequencies — so it
+    answers "yes," and that is its undoing.
+  </div>
+
+  <h2>4 · Crack one by hand</h2>
+  <p>Below is a real intercept, encrypted with a substitution cipher. Don't try all the keys — you
+  can't. Instead, <strong>count and guess</strong>. The bars show how often each cipher letter
+  appears; the most frequent is almost certainly <span class="cipher">E</span>. Type your guess for
+  each cipher letter and the decryption fills in live. Use the
+  <a href="../reference/english-letter-frequency.html">letter-frequency reference card</a> as you go.</p>
+
+  <div class="panel">
+    <h3>Crack the intercept</h3>
+    <p class="hint">Ciphertext (word spacing preserved — that's a gift to you):</p>
+    <div class="ct" id="ct"></div>
+
+    <div class="row" style="margin-top:.8rem">
+      <button id="freq-toggle" type="button">Show letter counts</button>
+      <button id="starter" type="button">Give me a starter (map the top letter)</button>
+      <button id="clear" type="button">Clear my guesses</button>
+    </div>
+    <div class="freqbars" id="freqbars" style="display:none"></div>
+
+    <p class="hint" style="margin:.9rem 0 .2rem">Your key — type a plaintext guess under each cipher letter:</p>
+    <div class="grid" id="grid"></div>
+
+    <p class="hint" style="margin:.6rem 0 .2rem">Reads as:</p>
+    <div class="solved" id="solved" aria-live="polite"></div>
+
+    <div class="row" style="margin-top:.7rem">
+      <button id="check" type="button">Check my solution</button>
+    </div>
+    <div class="feedback" id="fb" aria-live="polite"></div>
+  </div>
+
+  <h2>5 · Check your understanding</h2>
+  <p>From memory — no scrolling back. Retrieval is what turns today's lesson into next month's
+  knowledge.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <div class="primary">
+    <span class="tag">Primary source — read this next</span>
+    <p style="margin:.3rem 0 0">Simon Singh, <a href="https://simonsingh.net/media/articles/maths-and-science/arab-code-breakers/"><strong>“Arab Code Breakers”</strong></a> — the story of how
+    al-Kindi's insight broke the cipher that Europe trusted for centuries.<sup><a href="#s4">4</a></sup>
+    For the full arc, <em>The Code Book</em>, Chapter 1, carries you from Caesar through this crack
+    to the Vigenère cipher.<sup><a href="#s5">5</a></sup></p>
+  </div>
+
+  <div class="teacher">
+    <strong>I'm your teacher — use me.</strong> Stuck on the intercept? Tell me which letters you've
+    pinned and I'll nudge, not solve. Curious how al-Kindi counted without a computer, or why your
+    own name is hard to crack (too short!)? Ask. When you read the message above without the
+    "starter" button, tell me — that's my signal to log a learning record and open
+    <strong>Lesson 03: the Vigenère cipher</strong>, the move that was built specifically to defeat
+    what you just did.
+  </div>
+
+  <div class="nav">
+    <div class="card">
+      <div class="tag">Reference</div>
+      <div class="title"><a href="../reference/english-letter-frequency.html">English Letter Frequency</a></div>
+      <div class="desc">ETAOIN SHRDLU, the top digraphs, and a by-hand cracking checklist. Keep it open.</div>
+    </div>
+    <div class="card">
+      <div class="tag">Up next</div>
+      <div class="title">Lesson 03 — The Vigenère cipher</div>
+      <div class="desc">Use many cipher alphabets at once and the single fingerprint blurs. The cipher
+      that stayed unbroken for 300 years. Ask me to build it.</div>
+    </div>
+  </div>
+
+  <footer>
+    <strong>Sources</strong>
+    <ol>
+      <li id="s1"><a href="https://en.wikipedia.org/wiki/Substitution_cipher">Substitution cipher — Wikipedia</a>
+        (one-to-one letter mapping; keyspace of 26! ≈ 4 × 10<sup>26</sup>).</li>
+      <li id="s2"><a href="https://eitca.org/cybersecurity/eitc-is-ccf-classical-cryptography-fundamentals/history-of-cryptography/modular-arithmetic-and-historical-ciphers/is-an-exhaustive-key-search-effective-against-substitution-ciphers/">Exhaustive key search vs. substitution ciphers — EITCA</a>
+        (why brute force over 26! keys is infeasible).</li>
+      <li id="s3"><a href="http://practicalcryptography.com/cryptanalysis/letter-frequencies-various-languages/english-letter-frequencies/">English Letter Frequencies — Practical Cryptography</a>;
+        <a href="https://en.wikipedia.org/wiki/Letter_frequency">Letter frequency — Wikipedia</a> (E ≈ 12.7%; ETAOIN order).</li>
+      <li id="s4"><a href="https://simonsingh.net/media/articles/maths-and-science/arab-code-breakers/">Arab Code Breakers — Simon Singh</a>;
+        <a href="https://historyofinformation.com/detail.php?id=3162">al-Kindi's <em>Manuscript on Deciphering Cryptographic Messages</em>, c. 850 CE — History of Information</a>.</li>
+      <li id="s5"><a href="https://simonsingh.net/cryptography/">The Code Book — Simon Singh</a>.</li>
+    </ol>
+    Lesson 02 of the <strong>Ciphers</strong> teaching workspace · learned by hand.
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+  var ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+  /* ===================== §1 substitution encryptor ===================== */
+  var QWERTY = 'QWERTYUIOPASDFGHJKLZXCVBNM'; // a memorable permutation: the keyboard
+  var key = QWERTY.split('');                // key[i] = cipher letter for plain ALPHA[i]
+  var subMap = document.getElementById('sub-map');
+  var subIn  = document.getElementById('sub-in');
+  var subOut = document.getElementById('sub-out');
+
+  function shuffle(arr){
+    for (var i = arr.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+  function encrypt(text){
+    return text.toUpperCase().replace(/[A-Z]/g, function(c){
+      return key[c.charCodeAt(0) - 65];
+    });
+  }
+  function renderSub(){
+    var from = '', to = '';
+    for (var i = 0; i < 26; i++){ from += ALPHA[i] + ' '; to += key[i] + ' '; }
+    subMap.innerHTML = '<span class="from">plain&nbsp;&nbsp;' + from.trim() + '</span><br>' +
+                       '<span class="to">key&nbsp;&nbsp;&nbsp;' + to.trim() + '</span>';
+    subOut.textContent = encrypt(subIn.value) || ' ';
+  }
+  document.getElementById('shuffle').addEventListener('click', function(){
+    key = shuffle(ALPHA.slice()); renderSub();
+  });
+  document.getElementById('reset-qwerty').addEventListener('click', function(){
+    key = QWERTY.split(''); renderSub();
+  });
+  subIn.addEventListener('input', renderSub);
+  renderSub();
+
+  /* ===================== §4 frequency-analysis cracker ===================== */
+  // Plaintext encrypted with the QWERTY key above; ciphertext precomputed & fixed.
+  var PLAIN  = 'THE ENEMY KNOWS THE SYSTEM BUT WITHOUT THE KEY HE CANNOT READ A SINGLE WORD OF YOUR SECRET MESSAGE';
+  var CIPHER = 'ZIT TFTDN AFGVL ZIT LNLZTD WXZ VOZIGXZ ZIT ATN IT EQFFGZ KTQR Q LOFUST VGKR GY NGXK LTEKTZ DTLLQUT';
+
+  var ctEl   = document.getElementById('ct');
+  var fbarsEl= document.getElementById('freqbars');
+  var gridEl = document.getElementById('grid');
+  var solvedEl = document.getElementById('solved');
+  var fbEl   = document.getElementById('fb');
+  var guess  = {};   // cipher letter -> plaintext guess
+
+  ctEl.textContent = CIPHER;
+
+  // letters present in the ciphertext, with counts, sorted by frequency desc
+  var counts = {};
+  CIPHER.replace(/[A-Z]/g, function(c){ counts[c] = (counts[c]||0) + 1; return c; });
+  var present = Object.keys(counts).sort(function(a,b){
+    return counts[b] - counts[a] || a.localeCompare(b);
+  });
+  var maxCount = counts[present[0]];
+
+  function renderBars(){
+    var html = '';
+    present.forEach(function(L){
+      var w = (counts[L] / maxCount * 100).toFixed(0);
+      html += '<div class="fb"><span class="fl">' + L + '</span>' +
+              '<span class="ft"><span class="ff" style="width:' + w + '%"></span></span>' +
+              '<span class="fc">' + counts[L] + '</span></div>';
+    });
+    fbarsEl.innerHTML = html;
+  }
+  renderBars();
+
+  function markDupes(){
+    // flag any plaintext guess used for two different cipher letters
+    var seen = {};
+    present.forEach(function(L){ var g = guess[L]; if (g) seen[g] = (seen[g]||0) + 1; });
+    present.forEach(function(L){
+      var inp = gridEl.querySelector('input[data-l="' + L + '"]');
+      if (!inp) return;
+      inp.classList.toggle('dupe', !!(guess[L] && seen[guess[L]] > 1));
+    });
+  }
+  function renderSolved(){
+    var html = '';
+    for (var i = 0; i < CIPHER.length; i++){
+      var c = CIPHER[i];
+      if (c === ' ') { html += '&nbsp;&nbsp;'; continue; }
+      var g = guess[c];
+      html += g ? g : '<span class="blank">·</span>';
+    }
+    solvedEl.innerHTML = html;
+  }
+  function buildGrid(){
+    var html = '';
+    present.forEach(function(L){
+      html += '<div class="cell"><div class="cl">' + L + '</div>' +
+              '<input data-l="' + L + '" maxlength="1" autocomplete="off" spellcheck="false" ' +
+              'inputmode="latin" aria-label="plaintext for ' + L + '">' +
+              '<div class="cn">×' + counts[L] + '</div></div>';
+    });
+    gridEl.innerHTML = html;
+    Array.prototype.forEach.call(gridEl.querySelectorAll('input'), function(inp){
+      inp.addEventListener('input', function(){
+        var v = inp.value.toUpperCase().replace(/[^A-Z]/g, '');
+        inp.value = v;
+        var L = inp.getAttribute('data-l');
+        if (v) guess[L] = v; else delete guess[L];
+        markDupes(); renderSolved();
+      });
+    });
+  }
+  buildGrid();
+  renderSolved();
+
+  document.getElementById('freq-toggle').addEventListener('click', function(){
+    var open = fbarsEl.style.display !== 'none';
+    fbarsEl.style.display = open ? 'none' : 'block';
+    this.textContent = open ? 'Show letter counts' : 'Hide letter counts';
+  });
+  document.getElementById('starter').addEventListener('click', function(){
+    // the single most common cipher letter is E in disguise
+    var top = present[0];
+    guess[top] = 'E';
+    var inp = gridEl.querySelector('input[data-l="' + top + '"]');
+    if (inp) inp.value = 'E';
+    fbarsEl.style.display = 'block';
+    document.getElementById('freq-toggle').textContent = 'Hide letter counts';
+    markDupes(); renderSolved();
+    fbEl.className = 'feedback';
+    fbEl.innerHTML = 'Started you off: the most common cipher letter, <strong>' + top +
+      '</strong> (appears ' + counts[top] + '×), is almost certainly <strong>E</strong>. ' +
+      'Now find <span class="mono">THE</span> — a three-letter word ending in your new E.';
+  });
+  document.getElementById('clear').addEventListener('click', function(){
+    guess = {};
+    Array.prototype.forEach.call(gridEl.querySelectorAll('input'), function(i){ i.value=''; i.classList.remove('dupe'); });
+    renderSolved();
+    fbEl.className = 'feedback'; fbEl.textContent = '';
+  });
+
+  function decoded(){
+    return CIPHER.replace(/[A-Z]/g, function(c){ return guess[c] || '·'; });
+  }
+  document.getElementById('check').addEventListener('click', function(){
+    var got = decoded();
+    if (got.indexOf('·') !== -1){
+      fbEl.className = 'feedback';
+      fbEl.textContent = 'Keep going — some cipher letters still have no guess (shown as ·). ' +
+        'Fill the gaps using the words that are nearly readable.';
+      return;
+    }
+    if (got === PLAIN){
+      fbEl.className = 'feedback good';
+      fbEl.innerHTML = '✓ Solved it. The message: <strong>“THE ENEMY KNOWS THE SYSTEM, BUT ' +
+        'WITHOUT THE KEY HE CANNOT READ A SINGLE WORD OF YOUR SECRET MESSAGE.”</strong><br>' +
+        'You never tried 4 × 10²⁶ keys — you counted letters and let English do the rest. ' +
+        '(The key, by the way, was the <strong>QWERTY keyboard</strong>.) That is al-Kindi’s ' +
+        'method in your own hands. Tell your teacher you cracked it.';
+    } else {
+      fbEl.className = 'feedback bad';
+      fbEl.textContent = '✗ Not quite — the reading isn’t English yet. Trust the frequencies: ' +
+        'the commonest letters are E, T, A, O, I, N. Find THE, then let the half-words finish themselves.';
+    }
+  });
+
+  /* ===================== §5 quiz ===================== */
+  var QUIZ = [
+    {
+      stem: 'How many possible keys does a substitution cipher have?',
+      options: [
+        { t: 'About four hundred septillion keys', ok: true },
+        { t: 'Exactly twenty five different keys', ok: false },
+        { t: 'About one hundred thousand keys', ok: false },
+        { t: 'Exactly three hundred sixty keys', ok: false }
+      ],
+      good: 'Right — 26! ≈ 4 × 10²⁶, vastly more than Caesar’s 25.',
+      bad:  'It is 26! ≈ 4 × 10²⁶ — astronomically more than Caesar’s 25 keys.'
+    },
+    {
+      stem: 'Why does a giant keyspace still fail to keep it safe?',
+      options: [
+        { t: 'The output keeps the language pattern', ok: true },
+        { t: 'The keys repeat after some letters', ok: false },
+        { t: 'The message becomes far too short', ok: false },
+        { t: 'The sender forgets the chosen key', ok: false }
+      ],
+      good: 'Exactly — frequencies survive the scramble, so counting beats brute force.',
+      bad:  'The flaw is leakage: each letter’s frequency passes straight into the ciphertext.'
+    },
+    {
+      stem: 'Which cipher letter should you guess as E first?',
+      options: [
+        { t: 'Whichever appears the most often', ok: true },
+        { t: 'Whichever appears the least often', ok: false },
+        { t: 'Whichever comes first in order', ok: false },
+        { t: 'Whichever stands fully on its own', ok: false }
+      ],
+      good: 'Yes — E is ~12.7% of English, so the commonest cipher letter is your prime suspect.',
+      bad:  'E is the most common English letter, so pick the most common cipher letter.'
+    }
+  ];
+  var quizEl = document.getElementById('quiz');
+  QUIZ.forEach(function(q, qi){
+    var wrap = document.createElement('div'); wrap.className = 'q';
+    var stem = document.createElement('div'); stem.className = 'stem';
+    stem.textContent = (qi + 1) + '. ' + q.stem; wrap.appendChild(stem);
+    var opts = document.createElement('div'); opts.className = 'opts';
+    var explain = document.createElement('div'); explain.className = 'explain';
+    q.options.forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'opt'; b.textContent = o.t;
+      b.addEventListener('click', function(){
+        if (o.ok){
+          b.className = 'opt correct';
+          explain.className = 'explain good'; explain.textContent = '✓ ' + q.good;
+          Array.prototype.forEach.call(opts.children, function(c){ c.disabled = true; });
+        } else {
+          b.className = 'opt wrong';
+          explain.className = 'explain bad'; explain.textContent = '✗ ' + q.bad + ' Try again.';
+        }
+      });
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts); wrap.appendChild(explain);
+    quizEl.appendChild(wrap);
+  });
+})();
+</script>
+</body>
+</html>

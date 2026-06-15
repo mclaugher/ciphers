@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fffff8">
+<title>Reference · English Letter Frequency (ETAOIN SHRDLU)</title>
+<style>
+  :root { --ink:#111; --paper:#fffff8; --accent:#5b3a86; --accent2:#9a6a00;
+          --muted:#6b6b60; --rule:#dcdccb; --bar:#9b86c4; --bar2:#e7e0f2;
+          --mono:"SF Mono","Menlo",Consolas,"Liberation Mono",monospace; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.5;
+    max-width: 44rem; margin: 3rem auto; padding: 0 1.4rem;
+  }
+  h1 { font-size: 1.7rem; line-height: 1.2; font-weight: 600; margin: 0 0 .2rem; }
+  h2 { font-size: 1.1rem; font-weight: 600; margin: 1.9rem 0 .5rem;
+       border-bottom: 1px solid var(--rule); padding-bottom: .2rem; }
+  .kicker { font-variant: small-caps; letter-spacing: .08em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .6rem; }
+  p { margin: .8rem 0; }
+  .lead { color: var(--muted); font-style: italic; }
+  code, .mono { font-family: var(--mono); }
+  /* frequency bar chart */
+  .freq { margin: 1.1rem 0; }
+  .freq .bar { display: grid; grid-template-columns: 1.4rem 1fr 3.2rem; align-items: center;
+               gap: .5rem; margin: .12rem 0; }
+  .freq .ltr { font-family: var(--mono); font-weight: 700; text-align: center; }
+  .freq .track { background: var(--bar2); border-radius: 3px; height: 1.05rem; overflow: hidden; }
+  .freq .fill { background: var(--bar); height: 100%; border-radius: 3px; }
+  .freq .pct { font-family: var(--mono); font-size: .8rem; color: var(--muted); text-align: right; }
+  .freq .bar.top .ltr { color: var(--accent); }
+  .freq .bar.top .fill { background: var(--accent); }
+  .cols { display:flex; flex-wrap:wrap; gap:1.4rem; }
+  .cols > div { flex:1 1 13rem; }
+  table.mini { border-collapse: collapse; width: 100%; font-size: .92rem; }
+  table.mini td { border-bottom: 1px solid var(--rule); padding: .3rem .2rem; }
+  table.mini td.k { font-family: var(--mono); font-weight: 700; color: var(--accent); width: 4.5rem; }
+  table.mini td.v { color: var(--muted); }
+  .callout { background:#f4f4ea; border:1px solid var(--rule); border-radius:8px;
+             padding:.8rem 1rem; margin:1.1rem 0; }
+  .callout .tag { font-variant: small-caps; letter-spacing:.07em; color: var(--accent2);
+                  font-size:.76rem; display:block; margin-bottom:.2rem; }
+  ol.steps { margin:.5rem 0; padding-left:1.3rem; }
+  ol.steps li { margin:.35rem 0; }
+  .mnem { font-family: var(--mono); font-size:1.15rem; letter-spacing:.1em; color: var(--accent);
+          font-weight:700; }
+  footer { margin-top: 2.2rem; padding-top: 1rem; border-top: 1px solid var(--rule);
+           color: var(--muted); font-size: .85rem; }
+  a { color: var(--accent); }
+  @media (max-width: 34rem) {
+    body { font-size: 17px; margin: 1.4rem auto; padding: 0 1.05rem; }
+    h1 { font-size: 1.45rem; }
+    .freq .bar { grid-template-columns: 1.2rem 1fr 2.7rem; gap: .4rem; }
+  }
+  @media print {
+    body { margin: 0; max-width: none; font-size: 12pt; }
+    .callout { background: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · Reference Card</div>
+  <h1>English Letter Frequency</h1>
+  <p class="lead">The fingerprint of the language. A substitution cipher hides <em>which</em>
+  letter you wrote — but never <em>how often</em> you wrote it. That gap is the crack.</p>
+
+  <h2>The frequency of every letter</h2>
+  <p>Approximate share of each letter in ordinary English text. Exact figures drift a little with
+  the source, but the <em>ranking</em> is remarkably stable.<sup>1</sup></p>
+
+  <div class="freq" id="freq" aria-label="Letter frequency chart"></div>
+
+  <div class="callout">
+    <span class="tag">The mnemonic</span>
+    The twelve most common letters, in order, spell
+    <span class="mnem">ETAOIN&nbsp;SHRDLU</span>. The top three — <strong>E, T, A</strong> — alone
+    make up almost a third of all text. The rarest are <strong>J, X, Q, Z</strong>.<sup>1</sup>
+  </div>
+
+  <h2>Beyond single letters</h2>
+  <div class="cols">
+    <div>
+      <strong>Top digraphs</strong> (letter pairs)<sup>2</sup>
+      <table class="mini">
+        <tr><td class="k">TH</td><td class="v">2.7%</td></tr>
+        <tr><td class="k">HE</td><td class="v">2.3%</td></tr>
+        <tr><td class="k">IN</td><td class="v">2.0%</td></tr>
+        <tr><td class="k">ER</td><td class="v">1.8%</td></tr>
+        <tr><td class="k">AN</td><td class="v">1.6%</td></tr>
+        <tr><td class="k">RE</td><td class="v">1.4%</td></tr>
+      </table>
+    </div>
+    <div>
+      <strong>Tell-tale words &amp; shapes</strong>
+      <table class="mini">
+        <tr><td class="k">A&nbsp;·&nbsp;I</td><td class="v">the only common one-letter words</td></tr>
+        <tr><td class="k">THE</td><td class="v">by far the most common 3-letter word</td></tr>
+        <tr><td class="k">AND</td><td class="v">the next most common 3-letter word</td></tr>
+        <tr><td class="k">LL EE SS</td><td class="v">the most common doubled letters</td></tr>
+        <tr><td class="k">OO TT FF</td><td class="v">other frequent doubles</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h2>How to crack a substitution cipher by hand</h2>
+  <p>Frequency analysis is a <em>guess-and-confirm</em> loop, not a formula. Anchor a few high-value
+  letters, then let the readable fragments pull the rest into place.<sup>3</sup></p>
+  <ol class="steps">
+    <li><strong>Count the letters.</strong> The most frequent cipher letters are most likely
+      <span class="mono">E, T, A, O, I, N</span> — start your guesses there.</li>
+    <li><strong>Use the spaces (if any).</strong> A lone letter is <span class="mono">A</span> or
+      <span class="mono">I</span>; the commonest 3-letter word is <span class="mono">THE</span>,
+      which cracks three letters at once.</li>
+    <li><strong>Hunt doubles.</strong> A repeated pair is probably
+      <span class="mono">LL, EE, SS, OO,</span> or <span class="mono">TT</span>.</li>
+    <li><strong>Lean on digraphs.</strong> After <span class="mono">H→?</span> and
+      <span class="mono">E→?</span>, look for <span class="mono">TH</span> and
+      <span class="mono">HE</span> to confirm.</li>
+    <li><strong>Read, don't solve.</strong> Fill partial words and let English finish them —
+      <span class="mono">T·E → THE</span>. Wrong guesses produce gibberish; back up and try again.</li>
+  </ol>
+
+  <div class="callout">
+    <span class="tag">Why it works — and when it fails</span>
+    Frequency analysis beats <em>any</em> monoalphabetic cipher because the same plaintext letter
+    always maps to the same ciphertext letter, so the language's statistics shine straight through.
+    It weakens on very short messages (too little text to count) and was deliberately defeated by
+    the <strong>Vigenère cipher</strong>, which uses several alphabets at once — the next lesson.
+  </div>
+
+  <footer>
+    Reference card for the <strong>Ciphers</strong> teaching workspace ·
+    Used by <a href="../lessons/0002-substitution-and-frequency-analysis.html">Lesson 02 — Substitution &amp; Frequency Analysis</a>.<br>
+    <strong>Sources:</strong>
+    1 <a href="http://practicalcryptography.com/cryptanalysis/letter-frequencies-various-languages/english-letter-frequencies/">English Letter Frequencies — Practical Cryptography</a>;
+    <a href="https://en.wikipedia.org/wiki/Letter_frequency">Letter frequency — Wikipedia</a>.
+    2 <a href="https://norvig.com/mayzner.html">English Letter &amp; Bigram Counts — Peter Norvig (Mayzner revisited)</a>.
+    3 <a href="https://www.simonsingh.net/The_Black_Chamber/frequencyanalysis.html">Frequency Analysis — Simon Singh, The Black Chamber</a>.
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+  /* Canonical English single-letter frequencies (%), ranked. */
+  var F = [
+    ['E',12.70],['T',9.06],['A',8.17],['O',7.51],['I',6.97],['N',6.75],
+    ['S',6.33],['H',6.09],['R',5.99],['D',4.25],['L',4.03],['C',2.78],
+    ['U',2.76],['M',2.41],['W',2.36],['F',2.23],['G',2.02],['Y',1.97],
+    ['P',1.93],['B',1.49],['V',0.98],['K',0.77],['J',0.15],['X',0.15],
+    ['Q',0.10],['Z',0.07]
+  ];
+  var max = F[0][1], el = document.getElementById('freq'), html = '';
+  F.forEach(function (row, i) {
+    var w = (row[1] / max * 100).toFixed(1);
+    html += '<div class="bar' + (i < 3 ? ' top' : '') + '">' +
+              '<span class="ltr">' + row[0] + '</span>' +
+              '<span class="track"><span class="fill" style="width:' + w + '%"></span></span>' +
+              '<span class="pct">' + row[1].toFixed(2) + '%</span>' +
+            '</div>';
+  });
+  el.innerHTML = html;
+})();
+</script>
+</body>
+</html>

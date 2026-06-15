@@ -28,3 +28,12 @@ Working notes on how to teach this learner. Not a journal — preferences and co
 
 ## Progress
 - Lesson 01 — The Caesar Cipher: created. (Awaiting evidence of mastery before LR + glossary.)
+- Lesson 02 — Substitution & Frequency Analysis: created, with interactive frequency-analysis
+  cracker (intercept solves to a Kerckhoffs-themed quote; key = QWERTY layout). Built the
+  `english-letter-frequency.html` reference card alongside it.
+  - Mission throughline reinforced: big keyspace ≠ secure; ciphertext must not leak plaintext
+    structure. Teed up Lesson 03 (Vigenère) as the deliberate answer to frequency analysis.
+  - Still **awaiting evidence of mastery** before writing the first learning record or promoting
+    glossary terms. Watch for: can they crack the intercept *without* the "starter" button, and
+    do they reach for E→most-common unprompted? Math-appetite question (NOTES, open) still open —
+    they met 26!/factorial here; gauge reaction.
