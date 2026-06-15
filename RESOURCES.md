@@ -63,5 +63,10 @@ memory. Wisdom comes from the communities at the bottom.
 - ~~Lesson 04 (full Vigenère break) will need a worked column-split example~~ — **done**: 388-letter
   intercept (key LEMON) where per-column most-common=E recovers the key cleanly; see
   `reference/breaking-vigenere.html`.
-- Lesson 05 (one-time pad / perfect secrecy): need a vetted source on Shannon's perfect-secrecy proof
-  and the Vernam cipher / one-time-pad pitfalls (key reuse, true randomness). Find before building.
+- ~~Lesson 05 (one-time pad / perfect secrecy) sourcing~~ — **done**: Wikipedia One-time pad &
+  Communication Theory of Secrecy Systems (Shannon 1949); Crypto-IT two-time-pad attack; VENONA
+  (Wikipedia) for the key-reuse history. See `reference/one-time-pad.html`.
+- Lesson 06 (transposition): need a by-hand source — columnar transposition + rail fence, and how
+  anagramming / multiple-anagramming breaks them. (Singh Code Book + Wikipedia Transposition cipher.)
+- Modern thread (key exchange / public key, after transposition): math-appetite still UNKNOWN —
+  gauge before committing to Diffie–Hellman/RSA, which lean on modular exponentiation.

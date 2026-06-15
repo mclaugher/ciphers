@@ -57,6 +57,16 @@ Working notes on how to teach this learner. Not a journal — preferences and co
   - Next deliberate beat: **Lesson 05 — one-time pad & perfect secrecy** (teed up in L04). This is the
     classical→modern hinge the MISSION calls out. Will need real sourcing on Shannon (see RESOURCES gap).
 
+- Lesson 05 — The One-Time Pad & Perfect Secrecy: created. Two interactives: OTP encrypt with a
+  fresh random pad, and the perfect-secrecy demo (one fixed 6-letter intercept "QXMJLF" + a table
+  showing ATTACK/DEFEND/RETIRE/WAITUP each reachable via a different valid key, plus a free-input
+  row). Covers Shannon 1949, the four rules, two-time-pad/VENONA, and the key-distribution problem
+  as the doorway to modern crypto. Built `one-time-pad.html` reference.
+  - This is the classical→modern hinge. Deliberately framed "two roads" at the end: (a) finish the
+    classical by-hand set with **transposition** (Lesson 06, mission-named, low math), then (b) the
+    modern key-distribution thread (Diffie–Hellman / public key) — which I should gate on the user's
+    still-unknown math appetite.
+
 ## Pacing observations
 - 2026-06-15: User is in "keep building" mode (batch-consuming lessons) rather than working through
   the interactives between sessions. Lessons are accumulating faster than evidence of mastery. Not a

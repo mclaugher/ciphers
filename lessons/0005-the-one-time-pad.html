@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fffff8">
+<title>Lesson 05 · The One-Time Pad &amp; Perfect Secrecy</title>
+<style>
+  :root {
+    --ink:#111; --paper:#fffff8; --accent:#5b3a86; --accent2:#9a6a00;
+    --muted:#6b6b60; --rule:#dcdccb; --good:#1d6b3a; --bad:#9a2a2a;
+    --panel:#f4f4ea; --mono:"SF Mono","Menlo",Consolas,"Liberation Mono",monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.58;
+    max-width: 42rem; margin: 3rem auto 5rem; padding: 0 1.4rem;
+  }
+  .kicker { font-variant: small-caps; letter-spacing: .09em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .5rem; }
+  h1 { font-size: 2.05rem; line-height: 1.12; font-weight: 600; margin: 0 0 .3rem; }
+  h2 { font-size: 1.3rem; font-weight: 600; margin: 2.4rem 0 .5rem;
+       border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  .lead { color: var(--muted); font-style: italic; font-size: 1.06rem; }
+  p { margin: .85rem 0; }
+  strong { font-weight: 600; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  sup a { text-decoration: none; font-size: .7em; padding: 0 1px; }
+  code, .mono { font-family: var(--mono); }
+  .cipher { font-family: var(--mono); letter-spacing: .1em; background: #efeede;
+            padding: .08em .3em; border-radius: 4px; }
+  .keyidea { border-left: 4px solid var(--accent2); background: #fcf7ec;
+             padding: .7rem 1rem; margin: 1.4rem 0; border-radius: 0 8px 8px 0; }
+  .keyidea .tag { font-variant: small-caps; letter-spacing: .07em; color: var(--accent2);
+                  font-size: .78rem; display:block; margin-bottom: .2rem; }
+  .panel { border: 1px solid var(--rule); background: var(--panel);
+           border-radius: 10px; padding: 1.1rem 1.2rem; margin: 1.4rem 0; }
+  .panel h3 { margin: 0 0 .2rem; font-size: 1.02rem; font-weight: 600; }
+  .panel .hint { color: var(--muted); font-size: .86rem; margin: 0 0 .9rem; }
+  .row { display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; margin:.5rem 0; }
+  label.lbl { font-size: .9rem; color: var(--muted); }
+  input[type=text] { font-family: var(--mono); font-size: 1rem; padding: .45rem .55rem;
+                     border: 1px solid #c7c7b4; border-radius: 6px; background:#fff;
+                     flex: 1 1 200px; letter-spacing: .1em; text-transform: uppercase; }
+  button { font: inherit; font-size: .92rem; cursor: pointer; border:1px solid var(--accent);
+           background:#fff; color: var(--accent); border-radius: 6px; padding: .4rem .8rem; }
+  button:hover { background: var(--accent); color:#fff; }
+  .align { font-family: var(--mono); font-size: 1rem; line-height: 1.6; white-space: pre;
+           overflow-x:auto; background:#fff; border:1px dashed #c7c7b4; border-radius:6px;
+           padding:.6rem .7rem; margin-top:.6rem; -webkit-overflow-scrolling: touch; }
+  .align .pl { color: var(--ink); }
+  .align .ky { color: var(--accent2); }
+  .align .ci { color: var(--accent); font-weight: 700; }
+  table.poss { border-collapse: collapse; width:100%; margin:.6rem 0; font-size:.96rem; }
+  table.poss th, table.poss td { border-bottom:1px solid var(--rule); padding:.4rem .5rem; text-align:left; }
+  table.poss th { font-size:.78rem; font-variant:small-caps; letter-spacing:.05em; color:var(--muted); }
+  table.poss .msg { font-family:var(--mono); font-weight:700; letter-spacing:.12em; }
+  table.poss .key { font-family:var(--mono); color:var(--accent); letter-spacing:.12em; }
+  table.poss tr.you td { background:#faf7ff; }
+  .ctbig { font-family:var(--mono); font-size:1.4rem; letter-spacing:.35em; font-weight:700;
+           color:var(--accent); text-align:center; margin:.4rem 0 .2rem; }
+  .feedback { margin-top:.6rem; font-size:.95rem; min-height:1.2em; }
+  .feedback.good { color: var(--good); }
+  .feedback.bad  { color: var(--bad); }
+  .quiz { margin: 1rem 0 0; }
+  .q { margin: 1.3rem 0; }
+  .q .stem { font-weight: 600; margin-bottom: .5rem; }
+  .opts { display:flex; flex-direction:column; gap:.45rem; }
+  .opt { text-align:left; border:1px solid #c7c7b4; background:#fff; color:var(--ink);
+         border-radius:7px; padding:.5rem .7rem; font-size:.97rem; }
+  .opt:hover { border-color: var(--accent); background:#faf7ff; color: var(--ink); }
+  .opt.correct { border-color: var(--good); background:#eef7f0; color:#14502b; }
+  .opt.wrong   { border-color: var(--bad);  background:#f9eded; color:#6e1f1f; }
+  .q .explain { font-size:.88rem; color: var(--muted); margin-top:.45rem; min-height:1em; }
+  .q .explain.good { color: var(--good); }
+  .q .explain.bad  { color: var(--bad); }
+  .primary { border:1px solid var(--accent); border-radius:10px; padding:1rem 1.2rem;
+             margin:1.6rem 0; background:#faf7ff; }
+  .primary .tag { font-variant: small-caps; letter-spacing:.07em; color:var(--accent); font-size:.78rem; }
+  .teacher { background:#fcf7ec; border:1px dashed var(--accent2); border-radius:10px;
+             padding:.9rem 1.1rem; margin:1.6rem 0; font-size:.95rem; }
+  .nav { display:flex; gap:1rem; flex-wrap:wrap; margin-top:2rem; }
+  .card { flex:1 1 14rem; border:1px solid var(--rule); border-radius:10px; padding:.9rem 1rem; background:#fff; }
+  .card .tag { font-variant: small-caps; letter-spacing:.07em; color:var(--muted); font-size:.74rem; }
+  .card .title { font-weight:600; margin:.15rem 0; }
+  .card .desc { font-size:.86rem; color:var(--muted); }
+  footer { margin-top:2.6rem; padding-top:1rem; border-top:1px solid var(--rule);
+           color:var(--muted); font-size:.82rem; }
+  footer ol { margin:.4rem 0; padding-left:1.3rem; }
+  footer a { color: var(--accent); }
+  @media (max-width: 34rem) {
+    body { font-size: 17px; line-height: 1.5; margin: 1.4rem auto 3rem; padding: 0 1.05rem; }
+    h1 { font-size: 1.6rem; }
+    h2 { font-size: 1.18rem; margin: 1.9rem 0 .4rem; }
+    .lead { font-size: 1rem; }
+    .panel, .primary, .teacher, .keyidea { padding: .85rem .9rem; }
+    .row button { flex: 1 1 auto; padding: .6rem .7rem; }
+    input[type=text] { flex: 1 1 100%; font-size: 16px; }
+    .opt { padding: .7rem .8rem; font-size: 1rem; }
+    .nav { flex-direction: column; gap: .8rem; }
+    .ctbig { font-size: 1.15rem; letter-spacing: .25em; }
+  }
+  @media print {
+    body { margin:0; max-width:none; font-size:11pt; }
+    .panel, .primary, .teacher, .card { background:none !important; }
+    button { display:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · Lesson 05 · Classical → modern</div>
+  <h1>The One-Time Pad &amp; Perfect Secrecy</h1>
+  <p class="lead">Every cipher so far has fallen. This one never does — it is the only cipher proven
+  <em>unbreakable</em>, by mathematics, forever. The catch is what it costs you.</p>
+
+  <p><strong>Where we left off.</strong> Vigenère failed because its key <em>repeated</em>, and
+  repetition is a pattern an attacker can find (<a href="0004-breaking-the-vigenere-cipher.html">Lesson
+  04</a>). At the end we asked the dangerous question: what if the key <em>never</em> repeated — if it
+  were truly random and as long as the message itself? Let's build exactly that.</p>
+
+  <h2>1 · A key with no pattern to find</h2>
+  <p>The <strong>one-time pad</strong> is Vigenère pushed to its limit. Instead of a short keyword,
+  the key is a stream of <strong>completely random letters, as long as the message</strong>, used
+  <strong>once</strong> and then destroyed.<sup><a href="#s1">1</a></sup> Each letter still rides its
+  own shift (<span class="cipher">C = (P + K) mod 26</span>) — but now there is no repeat to exploit,
+  no frequencies to flatten back out, no period for Kasiski to find. The patterns aren't hidden;
+  they don't exist.</p>
+
+  <div class="panel">
+    <h3>Encrypt with a random pad</h3>
+    <p class="hint">A fresh random key for every letter. Generate a new pad and the same message
+    becomes something completely different — and only the matching pad can undo it.</p>
+    <div class="row">
+      <label class="lbl" for="otp-in">Message:</label>
+      <input type="text" id="otp-in" value="MEET AT THE DOCKS" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="row">
+      <button id="otp-new" type="button">Generate a fresh random pad</button>
+    </div>
+    <div class="align" id="otp-align" aria-live="polite"></div>
+  </div>
+
+  <h2>2 · Why it cannot be broken</h2>
+  <p>Here is the most beautiful idea in classical cryptography. Take a short intercept — say the six
+  letters below. An attacker tries to break it. But with a random pad, <em>every</em> six-letter
+  message is a possible answer: for any message you can imagine, there exists a key that turns this
+  exact ciphertext into it.</p>
+
+  <div class="panel">
+    <h3>One ciphertext, every meaning</h3>
+    <p class="hint">The intercept the enemy holds:</p>
+    <div class="ctbig" id="otp-ct"></div>
+    <p class="hint">For each guess, here's the key that would produce it from that very ciphertext —
+    every key equally random, equally valid:</p>
+    <table class="poss">
+      <thead><tr><th>If the message was…</th><th>…the key was simply</th></tr></thead>
+      <tbody id="poss-body"></tbody>
+    </table>
+    <div class="row">
+      <label class="lbl" for="poss-in">Try your own 6-letter word:</label>
+      <input type="text" id="poss-in" maxlength="9" placeholder="E.G. FRIDAY" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="feedback" id="poss-fb" aria-live="polite"></div>
+  </div>
+
+  <div class="keyidea">
+    <span class="tag">Shannon's perfect secrecy (1949)</span>
+    Because every plaintext is possible and equally likely, the ciphertext reveals <em>nothing</em>
+    about the message — not even to an enemy with infinite time and computers. Claude Shannon proved
+    this in 1949: the one-time pad has <strong>perfect secrecy</strong>, and any perfectly secret
+    cipher needs a key at least as long as the message.<sup><a href="#s2">2</a></sup>
+  </div>
+
+  <h2>3 · So why don't we all use it?</h2>
+  <p>If it's unbreakable, why was the rest of cryptography ever invented? Because perfection comes
+  with four unforgiving rules — break any one and the magic dies:<sup><a href="#s1">1</a></sup></p>
+  <ul>
+    <li>The key must be <strong>truly random</strong> — not a phrase, not a pattern.</li>
+    <li>The key must be <strong>as long as the message</strong>.</li>
+    <li>The key must be <strong>used only once</strong>.</li>
+    <li>The key must be <strong>shared in secret, in advance</strong>.</li>
+  </ul>
+
+  <p>Reuse a pad even once and you have a <strong>two-time pad</strong>: subtract the two ciphertexts
+  and the key cancels out (<span class="cipher">C₁ − C₂ = P₁ − P₂</span>), leaking the messages. This
+  exact mistake let US codebreakers read Soviet cables for years in the
+  <strong>VENONA</strong> project.<sup><a href="#s3">3</a></sup></p>
+
+  <div class="keyidea">
+    <span class="tag">The problem that creates modern cryptography</span>
+    To send one secret message you must <em>already</em> have secretly shared a key just as big. You
+    haven't removed the problem of sharing a secret — you've made it the same size as all your traffic.
+    That single, practical flaw — the <strong>key-distribution problem</strong> — is what the modern
+    era was built to solve.<sup><a href="#s3">3</a></sup>
+  </div>
+
+  <h2>4 · Check your understanding</h2>
+  <p>From memory. The recall effort is the learning.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <div class="primary">
+    <span class="tag">Primary source — read next</span>
+    <p style="margin:.3rem 0 0">Simon Singh, <a href="https://simonsingh.net/cryptography/"><em>The Code Book</em></a>,
+    on the one-time pad and the hunt for practical key exchange;<sup><a href="#s4">4</a></sup> and for
+    the real thing, Claude Shannon's 1949 <a href="https://en.wikipedia.org/wiki/Communication_Theory_of_Secrecy_Systems"><em>Communication
+    Theory of Secrecy Systems</em></a>, where perfect secrecy is proved.<sup><a href="#s2">2</a></sup></p>
+  </div>
+
+  <div class="teacher">
+    <strong>I'm your teacher — use me.</strong> Want to see the two-time-pad leak worked out, or why
+    "random" is so much harder than it sounds? Curious how spies actually carried their pads, or how
+    the Moscow–Washington hotline used one? Ask. We've now taken <em>substitution</em> as far as it can
+    possibly go. When you can explain <em>why</em> a one-time pad is unbreakable in your own words,
+    tell me — there are two roads onward, and you should choose.
+  </div>
+
+  <div class="nav">
+    <div class="card">
+      <div class="tag">Reference</div>
+      <div class="title"><a href="../reference/one-time-pad.html">The One-Time Pad</a></div>
+      <div class="desc">The four rules, the mod-26 method, why it's perfectly secret, and the catch. Keep it handy.</div>
+    </div>
+    <div class="card">
+      <div class="tag">Up next — two roads</div>
+      <div class="title">Lesson 06 — Transposition ciphers</div>
+      <div class="desc">Finish the classical toolkit: scramble by <em>rearranging</em> letters, not
+      replacing them. Then we turn to the modern key-distribution problem. Ask me to build it.</div>
+    </div>
+  </div>
+
+  <footer>
+    <strong>Sources</strong>
+    <ol>
+      <li id="s1"><a href="https://en.wikipedia.org/wiki/One-time_pad">One-time pad — Wikipedia</a>
+        (Vernam 1919 &amp; Mauborgne; random, message-length, single-use, pre-shared key; rules and pitfalls).</li>
+      <li id="s2"><a href="https://en.wikipedia.org/wiki/Communication_Theory_of_Secrecy_Systems">Communication Theory of Secrecy Systems — Claude Shannon, 1949</a>
+        (perfect secrecy; the key must be at least as long as the message).</li>
+      <li id="s3"><a href="http://www.crypto-it.net/eng/attacks/two-time-pad.html">Two-time pad attack — Crypto-IT</a>;
+        <a href="https://en.wikipedia.org/wiki/Venona_project">VENONA project — Wikipedia</a> (key reuse broke Soviet pads); key-distribution problem.</li>
+      <li id="s4"><a href="https://simonsingh.net/cryptography/">The Code Book — Simon Singh</a>.</li>
+    </ol>
+    Lesson 05 of the <strong>Ciphers</strong> teaching workspace · learned by hand.
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+  function mod(n){ return ((n % 26) + 26) % 26; }
+  function randLetter(){ return String.fromCharCode(65 + Math.floor(Math.random() * 26)); }
+
+  /* ===================== §1 OTP encrypt ===================== */
+  var otpIn = document.getElementById('otp-in');
+  var otpAlign = document.getElementById('otp-align');
+  var pad = '';
+
+  function regenPad(){
+    var letters = otpIn.value.toUpperCase().replace(/[^A-Z]/g, '').length;
+    pad = ''; for (var i = 0; i < letters; i++) pad += randLetter();
+    renderOtp();
+  }
+  function renderOtp(){
+    var text = otpIn.value.toUpperCase();
+    var need = text.replace(/[^A-Z]/g, '').length;
+    while (pad.length < need) pad += randLetter();        // grow pad if message got longer
+    var pl = '', ky = '', ci = '', ki = 0;
+    for (var i = 0; i < text.length; i++){
+      var c = text[i];
+      if (c >= 'A' && c <= 'Z'){
+        var k = pad.charCodeAt(ki) - 65;
+        pl += c; ky += pad[ki]; ci += String.fromCharCode(65 + mod(c.charCodeAt(0) - 65 + k)); ki++;
+      } else { pl += c; ky += ' '; ci += c; }
+    }
+    otpAlign.innerHTML = '<span class="pl">message ' + pl + '</span>\n' +
+                         '<span class="ky">pad     ' + ky + '</span>\n' +
+                         '<span class="ci">cipher  ' + ci + '</span>';
+  }
+  document.getElementById('otp-new').addEventListener('click', regenPad);
+  otpIn.addEventListener('input', renderOtp);
+  regenPad();
+
+  /* ===================== §2 perfect secrecy ===================== */
+  var CT = 'QXMJLF';                       // a fixed 6-letter intercept
+  document.getElementById('otp-ct').textContent = CT;
+  var N = CT.length;
+  // key that turns CT into a chosen plaintext: K = (C - P) mod 26
+  function keyFor(msg){
+    var k = '';
+    for (var i = 0; i < N; i++) k += String.fromCharCode(65 + mod(CT.charCodeAt(i) - msg.charCodeAt(i)));
+    return k;
+  }
+  var PRESETS = ['ATTACK', 'DEFEND', 'RETIRE', 'WAITUP'];
+  var body = document.getElementById('poss-body');
+  PRESETS.forEach(function(m){
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td class="msg">' + m + '</td><td class="key">' + keyFor(m) + '</td>';
+    body.appendChild(tr);
+  });
+  // user's own word
+  var youRow = document.createElement('tr'); youRow.className = 'you'; youRow.style.display = 'none';
+  youRow.innerHTML = '<td class="msg"></td><td class="key"></td>';
+  body.appendChild(youRow);
+
+  var possIn = document.getElementById('poss-in');
+  var possFb = document.getElementById('poss-fb');
+  possIn.addEventListener('input', function(){
+    var m = possIn.value.toUpperCase().replace(/[^A-Z]/g, '');
+    possIn.value = m;
+    if (m.length === N){
+      youRow.style.display = '';
+      youRow.children[0].textContent = m;
+      youRow.children[1].textContent = keyFor(m);
+      possFb.className = 'feedback good';
+      possFb.innerHTML = '✓ With the key <span class="mono">' + keyFor(m) + '</span>, the very same ' +
+        'intercept <span class="mono">' + CT + '</span> decrypts to <strong>' + m + '</strong>. ' +
+        'It is just as valid as every other row — which is exactly why the enemy learns nothing.';
+    } else {
+      youRow.style.display = 'none';
+      possFb.className = 'feedback';
+      possFb.textContent = 'Type any ' + N + ' letters — every one of them is a possible message.';
+    }
+  });
+
+  /* ===================== §3 quiz ===================== */
+  var QUIZ = [
+    {
+      stem: 'What makes the one-time pad impossible to break?',
+      options: [
+        { t: 'Every possible message stays equally likely', ok: true },
+        { t: 'The keyword is a rare word', ok: false },
+        { t: 'The alphabet is shuffled many times', ok: false },
+        { t: 'The message is hidden inside noise', ok: false }
+      ],
+      good: 'Right — any plaintext is reachable with some key, so the ciphertext betrays nothing.',
+      bad:  'It is about possibility: every message remains equally likely, so nothing is revealed.'
+    },
+    {
+      stem: 'Which rule must a one-time pad never break?',
+      options: [
+        { t: 'The key is used only once', ok: true },
+        { t: 'The key is a common word', ok: false },
+        { t: 'The key is shorter than message', ok: false },
+        { t: 'The key is shared over email', ok: false }
+      ],
+      good: 'Yes — reuse creates a two-time pad and the key cancels, leaking both messages.',
+      bad:  'Reuse is fatal: a key used twice lets an attacker subtract the key away entirely.'
+    },
+    {
+      stem: 'Why is the perfect cipher rarely used in practice?',
+      options: [
+        { t: 'Sharing the huge key is impractical', ok: true },
+        { t: 'The encryption maths is too slow', ok: false },
+        { t: 'The ciphertext is far too long', ok: false },
+        { t: 'The alphabet is simply too small', ok: false }
+      ],
+      good: 'Exactly — you must pre-share a random key as big as all your traffic. That is the catch.',
+      bad:  'The cost is key distribution: a random key as long as every message must be shared first.'
+    }
+  ];
+  var quizEl = document.getElementById('quiz');
+  QUIZ.forEach(function(q, qi){
+    var wrap = document.createElement('div'); wrap.className = 'q';
+    var stem = document.createElement('div'); stem.className = 'stem';
+    stem.textContent = (qi + 1) + '. ' + q.stem; wrap.appendChild(stem);
+    var opts = document.createElement('div'); opts.className = 'opts';
+    var explain = document.createElement('div'); explain.className = 'explain';
+    q.options.forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'opt'; b.textContent = o.t;
+      b.addEventListener('click', function(){
+        if (o.ok){
+          b.className = 'opt correct';
+          explain.className = 'explain good'; explain.textContent = '✓ ' + q.good;
+          Array.prototype.forEach.call(opts.children, function(c){ c.disabled = true; });
+        } else {
+          b.className = 'opt wrong';
+          explain.className = 'explain bad'; explain.textContent = '✗ ' + q.bad + ' Try again.';
+        }
+      });
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts); wrap.appendChild(explain);
+    quizEl.appendChild(wrap);
+  });
+})();
+</script>
+</body>
+</html>

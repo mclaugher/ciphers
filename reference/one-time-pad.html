@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fffff8">
+<title>Reference · The One-Time Pad</title>
+<style>
+  :root { --ink:#111; --paper:#fffff8; --accent:#5b3a86; --accent2:#9a6a00;
+          --muted:#6b6b60; --rule:#dcdccb; --panel:#f4f4ea; --good:#1d6b3a; --bad:#9a2a2a;
+          --mono:"SF Mono","Menlo",Consolas,"Liberation Mono",monospace; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.5; max-width: 44rem; margin: 3rem auto; padding: 0 1.4rem;
+  }
+  h1 { font-size: 1.7rem; line-height: 1.2; font-weight: 600; margin: 0 0 .2rem; }
+  h2 { font-size: 1.05rem; font-weight: 600; margin: 1.7rem 0 .4rem; color: var(--accent); }
+  .kicker { font-variant: small-caps; letter-spacing: .08em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .6rem; }
+  p { margin: .7rem 0; }
+  .lead { color: var(--muted); font-style: italic; }
+  code, .mono { font-family: var(--mono); }
+  .rules { list-style:none; padding:0; margin:.6rem 0; }
+  .rules li { background:var(--panel); border:1px solid var(--rule); border-radius:8px;
+              padding:.55rem .8rem; margin:.4rem 0; }
+  .rules b { color: var(--accent); }
+  .formula { font-family: var(--mono); font-size:.9rem; background:#fff; border:1px dashed #c7c7b4;
+             border-radius:6px; padding:.5rem .7rem; margin:.5rem 0; white-space:pre; overflow-x:auto; }
+  .example .row { font-family:var(--mono); letter-spacing:.1em; white-space:pre; overflow-x:auto; margin:.1rem 0; }
+  .good { color: var(--good); } .bad { color: var(--bad); }
+  .note { color: var(--muted); font-size:.9rem; }
+  footer { margin-top:2.2rem; padding-top:1rem; border-top:1px solid var(--rule);
+           color:var(--muted); font-size:.85rem; }
+  a { color: var(--accent); }
+  @media (max-width: 34rem) { body { font-size:17px; margin:1.4rem auto; padding:0 1.05rem; } h1 { font-size:1.45rem; } }
+  @media print { body { margin:0; max-width:none; font-size:11pt; } .rules li, .formula { background:none; } }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · Reference Card</div>
+  <h1>The One-Time Pad</h1>
+  <p class="lead">The only cipher proven unbreakable — Vigenère with a key that is random, as long as
+  the message, and never reused. Perfect secrecy, at the price of an enormous key.</p>
+
+  <h2>The method (letter version)</h2>
+  <div class="formula">encrypt:  C = (P + K) mod 26
+decrypt:  P = (C − K) mod 26</div>
+  <p class="note">…where <code class="mono">K</code> is the next letter of the random pad, used once.
+  It's exactly the <a href="vigenere-tableau.html">Vigenère</a> rule — the difference is entirely in
+  the key. (See <a href="letter-number-reference.html">A = 0 … Z = 25</a>.)</p>
+
+  <div class="example">
+    <p><strong>Worked example.</strong></p>
+    <div class="row">message  H E L L O</div>
+    <div class="row">pad      X M C K Q   <span class="note">(random, used once)</span></div>
+    <div class="row good">cipher   E Q N V E</div>
+    <p class="note">H(7)+X(23)=30→4=E, E(4)+M(12)=16=Q, … Lose the pad and even the sender can't read it.</p>
+  </div>
+
+  <h2>The four rules — break one and it's broken</h2>
+  <ul class="rules">
+    <li><b>Random.</b> Every key letter truly random — never a word, phrase, or pattern.</li>
+    <li><b>Long.</b> The key is at least as long as the message.</li>
+    <li><b>Once.</b> Each stretch of key is used a single time, then destroyed.</li>
+    <li><b>Secret &amp; pre-shared.</b> Both parties hold the same pad, exchanged securely in advance.</li>
+  </ul>
+
+  <h2>Why it's perfectly secret</h2>
+  <p>For any ciphertext, <em>every</em> plaintext of that length is reachable with some key — and all
+  keys are equally likely. So the ciphertext gives an attacker no information at all, even with
+  unlimited computing power. Claude Shannon proved this in 1949, and proved that perfect secrecy
+  <em>requires</em> a key at least as long as the message.<sup>1</sup></p>
+
+  <h2>The traps</h2>
+  <p class="bad">Reuse = a two-time pad.</p>
+  <p>If one pad encrypts two messages, subtracting the ciphertexts cancels the key:
+  <code class="mono">C₁ − C₂ = P₁ − P₂</code>. The key vanishes and the messages leak — this broke
+  reused Soviet pads in the VENONA project.<sup>2</sup></p>
+  <p class="bad">The key-distribution problem.</p>
+  <p>To share one secret message you must first secretly share a key just as big. The secret-sharing
+  problem isn't solved — it's merely moved. That practical wall is why modern cryptography exists.</p>
+
+  <footer>
+    Reference card for the <strong>Ciphers</strong> teaching workspace ·
+    Used by <a href="../lessons/0005-the-one-time-pad.html">Lesson 05 — The One-Time Pad</a>.<br>
+    <strong>Sources:</strong> 1 <a href="https://en.wikipedia.org/wiki/One-time_pad">One-time pad — Wikipedia</a>,
+    <a href="https://en.wikipedia.org/wiki/Communication_Theory_of_Secrecy_Systems">Shannon 1949</a>.
+    2 <a href="https://en.wikipedia.org/wiki/Venona_project">VENONA — Wikipedia</a>.
+  </footer>
+</body>
+</html>
