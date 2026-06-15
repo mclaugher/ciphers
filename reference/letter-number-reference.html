@@ -32,6 +32,19 @@
   footer { margin-top: 2.2rem; padding-top: 1rem; border-top: 1px solid var(--rule);
            color: var(--muted); font-size: .85rem; }
   a { color: var(--accent); }
+  /* phones & small screens */
+  @media (max-width: 34rem) {
+    body { font-size: 17px; margin: 1.4rem auto; padding: 0 1.05rem; }
+    h1 { font-size: 1.45rem; }
+    .lead { font-size: 1rem; }
+    table.grid { margin: 1.1rem 0; }
+    table.grid td { padding: .3rem 0; }
+    table.grid .letter { font-size: 1rem; }
+    table.grid .num { font-size: .68rem; }
+    .formula { padding: .8rem .9rem; }
+    .example { padding-left: .8rem; }
+    .example .row { letter-spacing: .08em; }
+  }
   @media print {
     body { margin: 0; max-width: none; font-size: 12pt; }
     .formula { background: none; }

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fffff8">
+<title>Ciphers · Learn cryptography by hand</title>
+<style>
+  :root {
+    --ink:#111; --paper:#fffff8; --accent:#5b3a86; --muted:#6b6b60; --rule:#dcdccb;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.55;
+    max-width: 42rem; margin: 3rem auto 5rem; padding: 0 1.4rem;
+  }
+  .kicker { font-variant: small-caps; letter-spacing: .09em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .5rem; }
+  h1 { font-size: 2.1rem; line-height: 1.12; font-weight: 600; margin: 0 0 .3rem; }
+  .lead { color: var(--muted); font-style: italic; font-size: 1.06rem; margin: .4rem 0 1.6rem; }
+  h2 { font-size: 1.2rem; font-weight: 600; margin: 2rem 0 .6rem;
+       border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  .cards { display: flex; flex-direction: column; gap: .9rem; margin: 1rem 0; }
+  .card { display: block; border: 1px solid var(--rule); border-radius: 10px;
+          padding: 1rem 1.1rem; background: #fff; text-decoration: none; color: var(--ink); }
+  .card:hover { border-color: var(--accent); background: #faf7ff; }
+  .card .tag { font-variant: small-caps; letter-spacing: .07em; color: var(--muted); font-size: .74rem; }
+  .card .title { font-weight: 600; margin: .15rem 0; color: var(--accent); }
+  .card .desc { font-size: .9rem; color: var(--muted); }
+  footer { margin-top: 2.6rem; padding-top: 1rem; border-top: 1px solid var(--rule);
+           color: var(--muted); font-size: .82rem; }
+  @media (max-width: 34rem) {
+    body { font-size: 17px; margin: 1.6rem auto 3rem; padding: 0 1.05rem; }
+    h1 { font-size: 1.7rem; }
+    .lead { font-size: 1rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · A teaching workspace</div>
+  <h1>Learn cryptography by hand</h1>
+  <p class="lead">Short, interactive lessons that build the one idea all of cryptography rests on —
+  encrypt, decrypt, and crack real ciphers using nothing but your head.</p>
+
+  <h2>Lessons</h2>
+  <div class="cards">
+    <a class="card" href="lessons/0001-the-caesar-cipher.html">
+      <div class="tag">Lesson 01</div>
+      <div class="title">The Caesar Cipher</div>
+      <div class="desc">Encrypt, decrypt, and brute-force a Caesar cipher — and meet Kerckhoffs's principle.</div>
+    </a>
+  </div>
+
+  <h2>Reference</h2>
+  <div class="cards">
+    <a class="card" href="reference/letter-number-reference.html">
+      <div class="tag">Reference card</div>
+      <div class="title">The Alphabet as Numbers</div>
+      <div class="desc">A = 0 … Z = 25, plus the Caesar formula. Keep it beside you.</div>
+    </a>
+  </div>
+
+  <footer>
+    The <strong>Ciphers</strong> teaching workspace · learned by hand.
+  </footer>
+</body>
+</html>
