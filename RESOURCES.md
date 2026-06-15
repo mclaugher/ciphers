@@ -60,5 +60,8 @@ memory. Wisdom comes from the communities at the bottom.
   (Lesson 02). Verify its percentages against a second corpus if precision ever matters.
 - ~~No Vigenère / Kasiski source vetted yet~~ — **done** (Wikipedia Vigenère + Kasiski; Singh
   Code Book ch. 2–3 for narrative; Khan Academy polyalphabetic video as primary watch).
-- Lesson 04 (full Vigenère break) will need a worked column-split example — generate one like the
-  Kasiski intercept in Lesson 03 (key LEMON, "WE ARE SURROUNDED…").
+- ~~Lesson 04 (full Vigenère break) will need a worked column-split example~~ — **done**: 388-letter
+  intercept (key LEMON) where per-column most-common=E recovers the key cleanly; see
+  `reference/breaking-vigenere.html`.
+- Lesson 05 (one-time pad / perfect secrecy): need a vetted source on Shannon's perfect-secrecy proof
+  and the Vernam cipher / one-time-pad pitfalls (key reuse, true randomness). Find before building.

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fffff8">
+<title>Lesson 04 · Breaking the Vigenère Cipher</title>
+<style>
+  :root {
+    --ink:#111; --paper:#fffff8; --accent:#5b3a86; --accent2:#9a6a00;
+    --muted:#6b6b60; --rule:#dcdccb; --good:#1d6b3a; --bad:#9a2a2a;
+    --panel:#f4f4ea; --col:#f0ecf8;
+    --mono:"SF Mono","Menlo",Consolas,"Liberation Mono",monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.58;
+    max-width: 42rem; margin: 3rem auto 5rem; padding: 0 1.4rem;
+  }
+  .kicker { font-variant: small-caps; letter-spacing: .09em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .5rem; }
+  h1 { font-size: 2.1rem; line-height: 1.12; font-weight: 600; margin: 0 0 .3rem; }
+  h2 { font-size: 1.3rem; font-weight: 600; margin: 2.4rem 0 .5rem;
+       border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  .lead { color: var(--muted); font-style: italic; font-size: 1.06rem; }
+  p { margin: .85rem 0; }
+  strong { font-weight: 600; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  sup a { text-decoration: none; font-size: .7em; padding: 0 1px; }
+  code, .mono { font-family: var(--mono); }
+  .cipher { font-family: var(--mono); letter-spacing: .1em; background: #efeede;
+            padding: .08em .3em; border-radius: 4px; }
+  .keyidea { border-left: 4px solid var(--accent2); background: #fcf7ec;
+             padding: .7rem 1rem; margin: 1.4rem 0; border-radius: 0 8px 8px 0; }
+  .keyidea .tag { font-variant: small-caps; letter-spacing: .07em; color: var(--accent2);
+                  font-size: .78rem; display:block; margin-bottom: .2rem; }
+  .panel { border: 1px solid var(--rule); background: var(--panel);
+           border-radius: 10px; padding: 1.1rem 1.2rem; margin: 1.4rem 0; }
+  .panel h3 { margin: 0 0 .2rem; font-size: 1.02rem; font-weight: 600; }
+  .panel .hint { color: var(--muted); font-size: .86rem; margin: 0 0 .9rem; }
+  .row { display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; margin:.5rem 0; }
+  button { font: inherit; font-size: .92rem; cursor: pointer; border:1px solid var(--accent);
+           background:#fff; color: var(--accent); border-radius: 6px; padding: .4rem .8rem; }
+  button:hover { background: var(--accent); color:#fff; }
+  .ctbox { font-family: var(--mono); font-size: .82rem; letter-spacing: .08em; line-height: 1.7;
+           background:#fff; border:1px dashed #c7c7b4; border-radius:6px; padding:.5rem .6rem;
+           max-height: 7rem; overflow-y: auto; word-break: break-all; }
+  /* column cards */
+  .cols { display:flex; gap:.6rem; flex-wrap:wrap; margin:.9rem 0; }
+  .colcard { flex:1 1 5.4rem; min-width:5.2rem; background:var(--col); border:1px solid var(--rule);
+             border-radius:8px; padding:.55rem .5rem; text-align:center; }
+  .colcard .ch { font-size:.72rem; color:var(--muted); font-variant:small-caps; letter-spacing:.05em; }
+  .colcard .mc { font-family:var(--mono); font-size:.8rem; color:var(--ink); margin:.25rem 0; }
+  .colcard .mc b { color:var(--accent); font-size:1.05rem; }
+  .colcard input { width:2.6rem; font-family:var(--mono); text-transform:uppercase; text-align:center;
+                   font-size:1.15rem; font-weight:700; padding:.25rem 0; border:1px solid #c7c7b4;
+                   border-radius:6px; background:#fff; color:var(--accent); }
+  .keyout { font-family:var(--mono); font-size:1.2rem; letter-spacing:.3em; color:var(--accent);
+            font-weight:700; min-height:1.4em; }
+  .keyout .blank { color:#c7c7b4; }
+  .solved { font-family: var(--mono); font-size:.82rem; letter-spacing:.06em; line-height:1.7;
+            color: var(--ink); min-height:1.4em; word-break: break-all; margin-top:.4rem;
+            max-height:7rem; overflow-y:auto; background:#fff; border:1px dashed #c7c7b4;
+            border-radius:6px; padding:.5rem .6rem; }
+  .solved .blank { color:#c7c7b4; }
+  .solved .e { color: var(--accent); font-weight:700; }
+  .feedback { margin-top:.6rem; font-size:.95rem; min-height:1.2em; }
+  .feedback.good { color: var(--good); }
+  .feedback.bad  { color: var(--bad); }
+  .quiz { margin: 1rem 0 0; }
+  .q { margin: 1.3rem 0; }
+  .q .stem { font-weight: 600; margin-bottom: .5rem; }
+  .opts { display:flex; flex-direction:column; gap:.45rem; }
+  .opt { text-align:left; border:1px solid #c7c7b4; background:#fff; color:var(--ink);
+         border-radius:7px; padding:.5rem .7rem; font-size:.97rem; }
+  .opt:hover { border-color: var(--accent); background:#faf7ff; color: var(--ink); }
+  .opt.correct { border-color: var(--good); background:#eef7f0; color:#14502b; }
+  .opt.wrong   { border-color: var(--bad);  background:#f9eded; color:#6e1f1f; }
+  .q .explain { font-size:.88rem; color: var(--muted); margin-top:.45rem; min-height:1em; }
+  .q .explain.good { color: var(--good); }
+  .q .explain.bad  { color: var(--bad); }
+  .primary { border:1px solid var(--accent); border-radius:10px; padding:1rem 1.2rem;
+             margin:1.6rem 0; background:#faf7ff; }
+  .primary .tag { font-variant: small-caps; letter-spacing:.07em; color:var(--accent); font-size:.78rem; }
+  .teacher { background:#fcf7ec; border:1px dashed var(--accent2); border-radius:10px;
+             padding:.9rem 1.1rem; margin:1.6rem 0; font-size:.95rem; }
+  .nav { display:flex; gap:1rem; flex-wrap:wrap; margin-top:2rem; }
+  .card { flex:1 1 14rem; border:1px solid var(--rule); border-radius:10px; padding:.9rem 1rem; background:#fff; }
+  .card .tag { font-variant: small-caps; letter-spacing:.07em; color:var(--muted); font-size:.74rem; }
+  .card .title { font-weight:600; margin:.15rem 0; }
+  .card .desc { font-size:.86rem; color:var(--muted); }
+  footer { margin-top:2.6rem; padding-top:1rem; border-top:1px solid var(--rule);
+           color:var(--muted); font-size:.82rem; }
+  footer ol { margin:.4rem 0; padding-left:1.3rem; }
+  footer a { color: var(--accent); }
+  @media (max-width: 34rem) {
+    body { font-size: 17px; line-height: 1.5; margin: 1.4rem auto 3rem; padding: 0 1.05rem; }
+    h1 { font-size: 1.65rem; }
+    h2 { font-size: 1.18rem; margin: 1.9rem 0 .4rem; }
+    .lead { font-size: 1rem; }
+    .panel, .primary, .teacher, .keyidea { padding: .85rem .9rem; }
+    .row button { flex: 1 1 auto; padding: .6rem .7rem; }
+    .opt { padding: .7rem .8rem; font-size: 1rem; }
+    .nav { flex-direction: column; gap: .8rem; }
+    .colcard { flex:1 1 4.4rem; min-width:4.2rem; }
+  }
+  @media print {
+    body { margin:0; max-width:none; font-size:11pt; }
+    .panel, .primary, .teacher, .card { background:none !important; }
+    button, .colcard input { display:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · Lesson 04 · Classical, by hand</div>
+  <h1>Breaking the Vigenère Cipher</h1>
+  <p class="lead">You found the key length last time. Now you finish the kill — and watch the
+  "indecipherable" cipher dissolve into the two ciphers you already beat.</p>
+
+  <p><strong>Where we left off.</strong> In <a href="0003-the-vigenere-cipher.html">Lesson 03</a> you
+  used Kasiski's trick — repeated chunks, gap distances, their GCD — to learn that an intercept's key
+  was <strong>5</strong> letters long. That single number is the crack. Here's why.</p>
+
+  <h2>1 · One long cipher becomes many short ones</h2>
+  <p>If the key has length 5, then letters 1, 6, 11, 16, … were <em>all</em> enciphered with the same
+  key letter. So were letters 2, 7, 12, …, and so on. Deal the ciphertext into <strong>5 columns</strong>
+  — like dealing cards — and each column is a plain old <strong>Caesar cipher</strong> with a single
+  fixed shift.<sup><a href="#s1">1</a></sup></p>
+
+  <p>And you already know how to break a Caesar cipher by counting letters
+  (<a href="0002-substitution-and-frequency-analysis.html">Lesson 02</a>): the most common letter in
+  each column is almost certainly <span class="cipher">E</span> in disguise, so its shift hands you
+  that column's key letter. Five columns → five key letters → the keyword.</p>
+
+  <div class="keyidea">
+    <span class="tag">Key idea</span>
+    Breaking Vigenère is not one new trick — it is <em>Kasiski</em> (find the key length) followed by
+    <em>frequency analysis</em> run once per column. A polyalphabetic cipher is only as strong as the
+    monoalphabetic pieces it breaks into once its period is known.
+  </div>
+
+  <h2>2 · Finish the crack</h2>
+  <p>Below is a longer intercept (frequency analysis needs a good amount of text — that's why short
+  messages resist it). Its key length is <strong>5</strong>. For each column, the most common letter
+  is shown; assume it's <span class="cipher">E</span> and type the key letter it implies — or just
+  press the hint and watch all five fall. The whole message decrypts live.</p>
+
+  <div class="panel">
+    <h3>Crack the intercept, column by column</h3>
+    <p class="hint">The intercept (no spaces — as a real cryptanalyst would get it):</p>
+    <div class="ctbox" id="ctbox"></div>
+
+    <p class="hint" style="margin:.9rem 0 .2rem">Five columns, five Caesar ciphers. What key letter
+    turns each column's most-common letter into <span class="cipher">E</span>?</p>
+    <div class="cols" id="cols"></div>
+
+    <div class="row">
+      <button id="hint" type="button">Solve by frequency (assume each top letter is E)</button>
+      <button id="clear" type="button">Clear</button>
+    </div>
+
+    <p class="hint" style="margin:.7rem 0 .2rem">Recovered keyword:</p>
+    <div class="keyout" id="keyout"></div>
+
+    <p class="hint" style="margin:.7rem 0 .2rem">Message reads as:</p>
+    <div class="solved" id="solved" aria-live="polite"></div>
+
+    <div class="row" style="margin-top:.7rem">
+      <button id="check" type="button">Check my solution</button>
+    </div>
+    <div class="feedback" id="fb" aria-live="polite"></div>
+  </div>
+
+  <h2>3 · So how strong is Vigenère, really?</h2>
+  <p>It was a genuine leap — for 300 years it beat the best codebreakers in Europe. But its strength
+  rested on a <em>repeating</em> key, and repetition is a pattern, and patterns leak. The longer the
+  keyword, the more text an attacker needs and the harder the break — but as long as the key repeats,
+  the door is never fully shut.<sup><a href="#s2">2</a></sup></p>
+
+  <div class="keyidea">
+    <span class="tag">The question that opens the modern era</span>
+    What if the key <em>never</em> repeated — if it were as long as the message itself, and perfectly
+    random? Then there are no repeats to find and every column is one letter long. That cipher turns
+    out to be <strong>unbreakable</strong>, provably so. It's called the <strong>one-time pad</strong>,
+    and it's the next lesson.
+  </div>
+
+  <h2>4 · Check your understanding</h2>
+  <p>From memory. The recall effort is the learning.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <div class="primary">
+    <span class="tag">Primary source — read next</span>
+    <p style="margin:.3rem 0 0">Simon Singh, <a href="https://simonsingh.net/cryptography/"><em>The Code Book</em></a>,
+    Chapter 3, on how Babbage and Kasiski dismantled the unbreakable cipher;<sup><a href="#s2">2</a></sup>
+    and try a real break in Singh's <a href="https://www.simonsingh.net/The_Black_Chamber/vigenere_cracking_tool.html">Vigenère
+    cracking tool</a> to see the column method run at full scale.<sup><a href="#s3">3</a></sup></p>
+  </div>
+
+  <div class="teacher">
+    <strong>I'm your teacher — use me.</strong> Want to watch me crack a column you're stuck on, or
+    try an intercept where you <em>don't</em> get the key length for free? Curious how computers do
+    this with the "index of coincidence" instead of Kasiski? Ask. And when you can recite the whole
+    attack — <em>Kasiski for the length, then frequency analysis per column</em> — without looking,
+    that's my signal to log your progress and open <strong>Lesson 05: the one-time pad &amp; perfect
+    secrecy</strong>.
+  </div>
+
+  <div class="nav">
+    <div class="card">
+      <div class="tag">Reference</div>
+      <div class="title"><a href="../reference/breaking-vigenere.html">Breaking Vigenère — Playbook</a></div>
+      <div class="desc">The whole attack on one card: Kasiski for the key length, then column-wise frequency analysis.</div>
+    </div>
+    <div class="card">
+      <div class="tag">Up next</div>
+      <div class="title">Lesson 05 — The one-time pad</div>
+      <div class="desc">A key as long as the message, used once, perfectly random — and provably
+      unbreakable. The bridge to modern cryptography. Ask me to build it.</div>
+    </div>
+  </div>
+
+  <footer>
+    <strong>Sources</strong>
+    <ol>
+      <li id="s1"><a href="https://en.wikipedia.org/wiki/Kasiski_examination">Kasiski examination — Wikipedia</a>
+        (once the key length is known, split into columns; each is a Caesar cipher solved by frequency analysis).</li>
+      <li id="s2"><a href="https://simonsingh.net/cryptography/">The Code Book — Simon Singh</a>
+        (Babbage and Kasiski; the strength and limits of the repeating key).</li>
+      <li id="s3"><a href="https://www.simonsingh.net/The_Black_Chamber/vigenere_cracking_tool.html">Vigenère cracking tool — Simon Singh, The Black Chamber</a>.</li>
+    </ol>
+    Lesson 04 of the <strong>Ciphers</strong> teaching workspace · learned by hand.
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+  function mod(n){ return ((n % 26) + 26) % 26; }
+  var KCIPHER = "ELQJVRIZSEPGUDUPVDSFTWFSQPZQFLNSPSOCIMYRCJAFGSVQSJSSXSPPRFIETIEPRNEGGRLQAJVYKWSLDQQOEPHFVREIXZGLPQTEPUGSANMQGNNVAGFELQKUZPQOYALMPREFGHPSEDZRDFMPOLKQGNHXTSSLXMZSWEIOFSSDHXPCICEOQGGGCIBSNEEZRNCIBSNEMZUXPCXSNGIEOEPTQOGTRSHELGQWAELQQVALQFGPBFGBZROSLZYWBBHXTSYPRSHUZJFVRVIKHUPATCYPQQGFLKQGCWMFGVYXAGRAEDOGPGMSFLVOWCSIDGRLGTGBWZQROJWUACWIXSGEIDQBFRFWAREZRGSIUBQPGUDUPVMPYPGUDUPVROYWWMDNCXMHYLWF";
+  var KEYLEN = 5, ANSWER = "LEMON";
+
+  document.getElementById('ctbox').textContent = KCIPHER;
+
+  // split into columns by position mod KEYLEN
+  var columns = [];
+  for (var i = 0; i < KEYLEN; i++){
+    var s = '';
+    for (var j = i; j < KCIPHER.length; j += KEYLEN) s += KCIPHER[j];
+    columns.push(s);
+  }
+  function mostCommon(s){
+    var c = {}, best = '', bc = -1;
+    for (var i = 0; i < s.length; i++){ var ch = s[i]; c[ch] = (c[ch]||0) + 1; if (c[ch] > bc){ bc = c[ch]; best = ch; } }
+    return { letter: best, count: bc };
+  }
+  var guess = new Array(KEYLEN).fill('');
+
+  var colsEl = document.getElementById('cols');
+  var mcInfo = columns.map(mostCommon);
+  colsEl.innerHTML = columns.map(function(col, i){
+    return '<div class="colcard"><div class="ch">column ' + (i+1) + '</div>' +
+           '<div class="mc">top: <b>' + mcInfo[i].letter + '</b><br>×' + mcInfo[i].count + '</div>' +
+           '<input data-i="' + i + '" maxlength="1" autocomplete="off" spellcheck="false" aria-label="key letter for column ' + (i+1) + '"></div>';
+  }).join('');
+
+  var keyoutEl = document.getElementById('keyout');
+  var solvedEl = document.getElementById('solved');
+
+  function renderKey(){
+    var h = '';
+    for (var i = 0; i < KEYLEN; i++) h += guess[i] ? guess[i] : '<span class="blank">·</span>';
+    keyoutEl.innerHTML = h;
+  }
+  function renderSolved(){
+    var h = '';
+    for (var j = 0; j < KCIPHER.length; j++){
+      var g = guess[j % KEYLEN];
+      if (!g){ h += '<span class="blank">·</span>'; continue; }
+      var p = String.fromCharCode(65 + mod(KCIPHER.charCodeAt(j) - 65 - (g.charCodeAt(0) - 65)));
+      h += (p === 'E') ? '<span class="e">E</span>' : p;
+    }
+    solvedEl.innerHTML = h;
+  }
+  function refresh(){ renderKey(); renderSolved(); }
+
+  Array.prototype.forEach.call(colsEl.querySelectorAll('input'), function(inp){
+    inp.addEventListener('input', function(){
+      var v = inp.value.toUpperCase().replace(/[^A-Z]/g, '');
+      inp.value = v;
+      guess[+inp.getAttribute('data-i')] = v;
+      refresh();
+    });
+  });
+
+  document.getElementById('hint').addEventListener('click', function(){
+    for (var i = 0; i < KEYLEN; i++){
+      // most common = E (4)  =>  C = E + K  =>  K = mostCommon - 4
+      var k = mod((mcInfo[i].letter.charCodeAt(0) - 65) - 4);
+      guess[i] = String.fromCharCode(65 + k);
+      colsEl.querySelector('input[data-i="' + i + '"]').value = guess[i];
+    }
+    refresh();
+    document.getElementById('fb').className = 'feedback';
+    document.getElementById('fb').innerHTML = 'Assuming each column’s most common letter is <strong>E</strong> ' +
+      'gives a key letter for each. Read the message below — if a column came out wrong, its top letter ' +
+      'just wasn’t E; nudge that one by hand.';
+  });
+  document.getElementById('clear').addEventListener('click', function(){
+    guess = new Array(KEYLEN).fill('');
+    Array.prototype.forEach.call(colsEl.querySelectorAll('input'), function(i){ i.value = ''; });
+    refresh();
+    document.getElementById('fb').className = 'feedback';
+    document.getElementById('fb').textContent = '';
+  });
+  document.getElementById('check').addEventListener('click', function(){
+    var fb = document.getElementById('fb');
+    if (guess.some(function(g){ return !g; })){
+      fb.className = 'feedback';
+      fb.textContent = 'Fill a key letter for all five columns first (try the frequency button).';
+      return;
+    }
+    if (guess.join('') === ANSWER){
+      fb.className = 'feedback good';
+      fb.innerHTML = '✓ Cracked. The keyword is <strong>LEMON</strong>, and the intercept reads: ' +
+        '<em>“The Vigenère cipher resisted every codebreaker for three whole centuries… once you know ' +
+        'the length of the key, the whole message splits into separate Caesar ciphers, each solved by ' +
+        'simple letter counting, and the indecipherable cipher falls apart at last.”</em> ' +
+        'You just did exactly that. Tell your teacher.';
+    } else {
+      fb.className = 'feedback bad';
+      fb.innerHTML = '✗ The keyword <span class="mono">' + guess.join('') + '</span> doesn’t decode to ' +
+        'English. One or two columns whose top letter isn’t E need a manual nudge — scan the live ' +
+        'decoding for the column that’s still gibberish.';
+    }
+  });
+  refresh();
+
+  /* quiz */
+  var QUIZ = [
+    {
+      stem: 'After Kasiski gives the key length, what comes next?',
+      options: [
+        { t: 'Deal it into columns of letters', ok: true },
+        { t: 'Try every possible key in turn', ok: false },
+        { t: 'Shuffle the whole alphabet at random', ok: false },
+        { t: 'Reverse the order of the letters', ok: false }
+      ],
+      good: 'Right — each column is a Caesar cipher, cracked by frequency analysis from Lesson 02.',
+      bad:  'Brute force is hopeless; the move is to split into columns and frequency-analyse each.'
+    },
+    {
+      stem: 'Why must the intercept be reasonably long?',
+      options: [
+        { t: 'Frequency analysis needs enough counted letters', ok: true },
+        { t: 'Short keys cannot encrypt long messages', ok: false },
+        { t: 'The tableau only fits long messages', ok: false },
+        { t: 'Repeated words never occur in short', ok: false }
+      ],
+      good: 'Exactly — each column needs enough letters for E to actually stand out.',
+      bad:  'It’s about data: each column needs enough letters for the frequencies to be reliable.'
+    },
+    {
+      stem: 'What would make Vigenère truly unbreakable?',
+      options: [
+        { t: 'A random key as long as', ok: true },
+        { t: 'A much larger plaintext alphabet set', ok: false },
+        { t: 'A keyword chosen from the dictionary', ok: false },
+        { t: 'A second pass of the same', ok: false }
+      ],
+      good: 'Yes — a non-repeating, random, message-length key leaves no pattern. That’s the one-time pad.',
+      bad:  'The fix is to kill the repetition: a random key as long as the message — the one-time pad.'
+    }
+  ];
+  var quizEl = document.getElementById('quiz');
+  QUIZ.forEach(function(q, qi){
+    var wrap = document.createElement('div'); wrap.className = 'q';
+    var stem = document.createElement('div'); stem.className = 'stem';
+    stem.textContent = (qi + 1) + '. ' + q.stem; wrap.appendChild(stem);
+    var opts = document.createElement('div'); opts.className = 'opts';
+    var explain = document.createElement('div'); explain.className = 'explain';
+    q.options.forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'opt'; b.textContent = o.t;
+      b.addEventListener('click', function(){
+        if (o.ok){
+          b.className = 'opt correct';
+          explain.className = 'explain good'; explain.textContent = '✓ ' + q.good;
+          Array.prototype.forEach.call(opts.children, function(c){ c.disabled = true; });
+        } else {
+          b.className = 'opt wrong';
+          explain.className = 'explain bad'; explain.textContent = '✗ ' + q.bad + ' Try again.';
+        }
+      });
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts); wrap.appendChild(explain);
+    quizEl.appendChild(wrap);
+  });
+})();
+</script>
+</body>
+</html>

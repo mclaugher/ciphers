@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fffff8">
+<title>Reference · Breaking the Vigenère Cipher (Playbook)</title>
+<style>
+  :root { --ink:#111; --paper:#fffff8; --accent:#5b3a86; --accent2:#9a6a00;
+          --muted:#6b6b60; --rule:#dcdccb; --panel:#f4f4ea;
+          --mono:"SF Mono","Menlo",Consolas,"Liberation Mono",monospace; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.5; max-width: 44rem; margin: 3rem auto; padding: 0 1.4rem;
+  }
+  h1 { font-size: 1.7rem; line-height: 1.2; font-weight: 600; margin: 0 0 .2rem; }
+  h2 { font-size: 1.05rem; font-weight: 600; margin: 1.7rem 0 .4rem; color: var(--accent); }
+  .kicker { font-variant: small-caps; letter-spacing: .08em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .6rem; }
+  p { margin: .7rem 0; }
+  .lead { color: var(--muted); font-style: italic; }
+  code, .mono { font-family: var(--mono); }
+  ol.steps { margin:.5rem 0; padding-left:1.3rem; }
+  ol.steps > li { margin:.7rem 0; }
+  ol.steps b { color: var(--ink); }
+  .step { background: var(--panel); border:1px solid var(--rule); border-radius:8px;
+          padding:.7rem .9rem; margin:.6rem 0; }
+  .step .lbl { font-variant: small-caps; letter-spacing:.06em; color: var(--accent2);
+               font-size:.74rem; display:block; margin-bottom:.2rem; }
+  .formula { font-family: var(--mono); font-size:.9rem; background:#fff; border:1px dashed #c7c7b4;
+             border-radius:6px; padding:.5rem .7rem; margin:.5rem 0; }
+  .note { color: var(--muted); font-size:.9rem; }
+  footer { margin-top:2.2rem; padding-top:1rem; border-top:1px solid var(--rule);
+           color:var(--muted); font-size:.85rem; }
+  a { color: var(--accent); }
+  @media (max-width: 34rem) { body { font-size:17px; margin:1.4rem auto; padding:0 1.05rem; } h1 { font-size:1.45rem; } }
+  @media print { body { margin:0; max-width:none; font-size:11pt; } .step { background:none; } }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · Reference Card</div>
+  <h1>Breaking the Vigenère Cipher</h1>
+  <p class="lead">The whole attack on one card. It is two old tools in sequence: Kasiski to find the
+  key length, then frequency analysis run once per column.</p>
+
+  <h2>Step 1 · Find the key length (Kasiski examination)</h2>
+  <div class="step">
+    <span class="lbl">repeats betray the period</span>
+    <ol class="steps" style="margin:0">
+      <li>Scan the ciphertext for <b>repeated runs of 3+ letters</b>. A repeat usually means the same
+        plaintext met the same slice of the key.</li>
+      <li>For each repeat, measure the <b>distance</b> (number of letters) between its occurrences.</li>
+      <li>The key length divides every distance — so take the <b>greatest common divisor (GCD)</b> of
+        the distances. That GCD (or a small factor of it) is the key length <code class="mono">n</code>.</li>
+    </ol>
+  </div>
+  <p class="note">Example: gaps of 60, 45 and 20 → gcd = 5 → the key is 5 letters long.</p>
+
+  <h2>Step 2 · Split into columns</h2>
+  <div class="step">
+    <span class="lbl">one polyalphabetic → n monoalphabetic</span>
+    Write the ciphertext into <code class="mono">n</code> columns, dealing letters across like cards:
+    column 1 gets letters 1, n+1, 2n+1, …; column 2 gets 2, n+2, …; and so on. Every letter in a column
+    was shifted by the <b>same</b> key letter — so <b>each column is a Caesar cipher</b>.
+  </div>
+
+  <h2>Step 3 · Solve each column by frequency</h2>
+  <div class="step">
+    <span class="lbl">the Lesson 02 move, n times</span>
+    In each column, find the <b>most common letter</b>. Assume it is <code class="mono">E</code> (the
+    commonest English letter). The shift that turns it into E is that column's key letter:
+    <div class="formula">key letter = (most-common-letter &minus; E) mod 26<br>
+      &nbsp;&nbsp;decrypt: P = (C &minus; key letter) mod 26</div>
+    Collect one key letter per column → the <b>keyword</b>. Decrypt the whole message and read it; if a
+    column looks wrong, its top letter wasn't E — try the next most common (T, A, O) for that column only.
+  </div>
+
+  <h2>When it gets harder</h2>
+  <p class="note">Short messages give thin columns where E may not dominate — gather more text, or test
+  the top few candidates per column. Computers skip Kasiski and use the <em>index of coincidence</em> to
+  estimate the key length, then do the same column-wise frequency attack.</p>
+
+  <footer>
+    Reference card for the <strong>Ciphers</strong> teaching workspace ·
+    Used by <a href="../lessons/0004-breaking-the-vigenere-cipher.html">Lesson 04 — Breaking the Vigenère Cipher</a>.<br>
+    Builds on <a href="english-letter-frequency.html">English Letter Frequency</a> and the
+    <a href="vigenere-tableau.html">Vigenère Tableau</a>.
+    <strong>Source:</strong> <a href="https://en.wikipedia.org/wiki/Kasiski_examination">Kasiski examination — Wikipedia</a>.
+  </footer>
+</body>
+</html>

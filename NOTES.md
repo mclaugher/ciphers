@@ -49,8 +49,20 @@ Working notes on how to teach this learner. Not a journal — preferences and co
     Still no learning records / glossary promotion (no direct evidence yet). If they keep saying
     "continue," consider a light retrieval check before L04 to avoid building on sand.
 
+- Lesson 04 — Breaking the Vigenère Cipher: created. Column-by-column cracker on a 388-letter
+  intercept (key LEMON); "solve by frequency" auto-fills each column's key letter via most-common=E,
+  with live full-message decode and a manual-nudge path for columns whose top letter isn't E. Built
+  `breaking-vigenere.html` playbook reference. Closes the classical-cryptanalysis thread: Caesar →
+  substitution/frequency → Vigenère → breaking Vigenère.
+  - Next deliberate beat: **Lesson 05 — one-time pad & perfect secrecy** (teed up in L04). This is the
+    classical→modern hinge the MISSION calls out. Will need real sourcing on Shannon (see RESOURCES gap).
+
 ## Pacing observations
 - 2026-06-15: User is in "keep building" mode (batch-consuming lessons) rather than working through
   the interactives between sessions. Lessons are accumulating faster than evidence of mastery. Not a
   problem yet, but the first learning record should wait for a real signal (a solved intercept, a
   question that shows a misconception, or an explicit "I've got this").
+- 4 lessons + 4 reference cards now exist with ZERO learning records and an empty glossary. Before
+  Lesson 06, strongly consider pausing to (a) run a cross-lesson retrieval check, (b) write the first
+  learning record, (c) seed GLOSSARY.md with the terms the user has clearly absorbed. Flag this to the
+  user rather than building indefinitely on unverified mastery.
