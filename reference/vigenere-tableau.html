@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fffff8">
+<title>Reference · The Vigenère Tableau (Tabula Recta)</title>
+<style>
+  :root { --ink:#111; --paper:#fffff8; --accent:#5b3a86; --accent2:#9a6a00;
+          --muted:#6b6b60; --rule:#dcdccb; --hl:#efe6fb;
+          --mono:"SF Mono","Menlo",Consolas,"Liberation Mono",monospace; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.5;
+    max-width: 46rem; margin: 3rem auto; padding: 0 1.4rem;
+  }
+  h1 { font-size: 1.7rem; line-height: 1.2; font-weight: 600; margin: 0 0 .2rem; }
+  h2 { font-size: 1.1rem; font-weight: 600; margin: 1.8rem 0 .5rem;
+       border-bottom: 1px solid var(--rule); padding-bottom: .2rem; }
+  .kicker { font-variant: small-caps; letter-spacing: .08em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .6rem; }
+  p { margin: .8rem 0; }
+  .lead { color: var(--muted); font-style: italic; }
+  code, .mono { font-family: var(--mono); }
+  /* tableau */
+  .wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 1rem 0; }
+  table.tab { border-collapse: collapse; font-family: var(--mono); font-size: .7rem; }
+  table.tab td, table.tab th { width: 1.15rem; height: 1.15rem; text-align: center; padding: 0;
+                               border: 1px solid #e6e6d8; }
+  table.tab th { color: var(--accent); font-weight: 700; background: #f4f4ea; }
+  table.tab th.corner { background: var(--accent); color: #fff; }
+  table.tab td.hl-row, table.tab th.hl-row { background: var(--hl); }
+  table.tab td.hl-col, table.tab th.hl-col { background: var(--hl); }
+  table.tab td.hit { background: var(--accent); color: #fff; font-weight: 700; }
+  .pick { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin:.6rem 0; }
+  .pick label { font-size:.9rem; color:var(--muted); }
+  .pick input { font-family: var(--mono); width:3rem; text-transform:uppercase; text-align:center;
+                font-size:1rem; padding:.3rem; border:1px solid #c7c7b4; border-radius:6px; }
+  .pick .res { font-family: var(--mono); font-weight:700; color:var(--accent); }
+  .formula { background:#f4f4ea; border:1px solid var(--rule); border-radius:8px;
+             padding:.9rem 1.1rem; margin:1.1rem 0; }
+  .example { border-left:3px solid var(--accent); padding:.2rem 0 .2rem 1rem; margin:1.1rem 0; }
+  .example .row { font-family: var(--mono); letter-spacing:.12em; white-space:pre; overflow-x:auto; }
+  .note { color: var(--muted); font-size:.9rem; }
+  footer { margin-top:2.2rem; padding-top:1rem; border-top:1px solid var(--rule);
+           color:var(--muted); font-size:.85rem; }
+  a { color: var(--accent); }
+  @media (max-width: 34rem) { body { font-size:17px; margin:1.4rem auto; padding:0 1.05rem; }
+    h1 { font-size:1.45rem; } table.tab td, table.tab th { width:1rem; height:1rem; font-size:.6rem; } }
+  @media print { body { margin:0; max-width:none; font-size:11pt; } .formula { background:none; } .pick { display:none; } }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · Reference Card</div>
+  <h1>The Vigenère Tableau</h1>
+  <p class="lead">The <em>tabula recta</em>: 26 Caesar alphabets stacked in a square. A keyword picks
+  which row enciphers each letter — so the same letter can encrypt many different ways.</p>
+
+  <p>To <strong>encrypt</strong>: find the column of your <em>plaintext</em> letter and the row of
+  the current <em>key</em> letter; the cell where they cross is the ciphertext. To
+  <strong>decrypt</strong>: go to the <em>key</em> letter's row, scan along it for the
+  <em>ciphertext</em> letter, and read the column header.</p>
+
+  <div class="pick">
+    <label>Key letter <input id="k" maxlength="1" value="L"></label>
+    <label>Plain letter <input id="p" maxlength="1" value="A"></label>
+    <span class="res" id="res"></span>
+  </div>
+
+  <div class="wrap"><table class="tab" id="tab"></table></div>
+
+  <div class="formula">
+    <strong>The arithmetic (with <a href="letter-number-reference.html">A = 0 … Z = 25</a>)</strong><br>
+    Encrypt: <code class="mono">C = (P + K) mod 26</code><br>
+    Decrypt: <code class="mono">P = (C &minus; K) mod 26</code><br>
+    <span class="note">…where <code class="mono">K</code> is the key letter for that position. The
+    keyword repeats over the message: <code class="mono">LEMONLEMONLEMON…</code></span>
+  </div>
+
+  <div class="example">
+    <p><strong>Worked example — key <code class="mono">LEMON</code>.</strong></p>
+    <div class="row">plain   A T T A C K A T D A W N
+key     L E M O N L E M O N L E
+cipher  L X F O P V E F R N H R</div>
+    <p class="note">Each letter rides its own Caesar shift: A+L, T+E, T+M, … The repeating key is
+    both the cipher's strength and — because it repeats — its eventual weakness.</p>
+  </div>
+
+  <h2>A little history</h2>
+  <p>The stacked-alphabet square is Johannes Trithemius's <em>tabula recta</em> (1508). Adding a
+  repeating keyword to it was Giovan Battista Bellaso's idea (1553); the method was later
+  misattributed to Blaise de Vigenère, and the name stuck. For three centuries it was called
+  <em>le chiffre indéchiffrable</em> — "the indecipherable cipher" — until Charles Babbage (c. 1854,
+  unpublished) and Friedrich Kasiski (1863) broke it.<sup>1,2</sup></p>
+
+  <footer>
+    Reference card for the <strong>Ciphers</strong> teaching workspace ·
+    Used by <a href="../lessons/0003-the-vigenere-cipher.html">Lesson 03 — The Vigenère Cipher</a>.<br>
+    <strong>Sources:</strong>
+    1 <a href="https://en.wikipedia.org/wiki/Vigen%C3%A8re_cipher">Vigenère cipher — Wikipedia</a>;
+    <a href="https://en.wikipedia.org/wiki/Tabula_recta">Tabula recta — Wikipedia</a>.
+    2 <a href="https://en.wikipedia.org/wiki/Kasiski_examination">Kasiski examination — Wikipedia</a>.
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+  var tab = document.getElementById('tab');
+  // header row
+  var html = '<tr><th class="corner">+</th>';
+  for (var c = 0; c < 26; c++) html += '<th data-col="' + c + '">' + String.fromCharCode(65 + c) + '</th>';
+  html += '</tr>';
+  for (var r = 0; r < 26; r++){
+    html += '<tr><th data-row="' + r + '">' + String.fromCharCode(65 + r) + '</th>';
+    for (var c2 = 0; c2 < 26; c2++){
+      html += '<td data-row="' + r + '" data-col="' + c2 + '">' +
+              String.fromCharCode(65 + (r + c2) % 26) + '</td>';
+    }
+    html += '</tr>';
+  }
+  tab.innerHTML = html;
+
+  var kIn = document.getElementById('k'), pIn = document.getElementById('p'), res = document.getElementById('res');
+  function clamp(v){ v = (v||'').toUpperCase().replace(/[^A-Z]/g, ''); return v.charAt(0) || ''; }
+  function highlight(){
+    Array.prototype.forEach.call(tab.querySelectorAll('.hl-row,.hl-col,.hit'), function(e){
+      e.className = e.tagName === 'TH' ? (e.classList.contains('corner') ? 'corner' : '') : '';
+    });
+    var k = clamp(kIn.value), p = clamp(pIn.value);
+    kIn.value = k; pIn.value = p;
+    if (!k || !p){ res.textContent = ''; return; }
+    var kr = k.charCodeAt(0) - 65, pc = p.charCodeAt(0) - 65;
+    tab.querySelectorAll('[data-row="' + kr + '"]').forEach(function(e){ e.classList.add('hl-row'); });
+    tab.querySelectorAll('[data-col="' + pc + '"]').forEach(function(e){ e.classList.add('hl-col'); });
+    var hit = tab.querySelector('td[data-row="' + kr + '"][data-col="' + pc + '"]');
+    if (hit){ hit.className = 'hit'; res.textContent = k + ' + ' + p + '  →  ' + hit.textContent; }
+  }
+  kIn.addEventListener('input', highlight);
+  pIn.addEventListener('input', highlight);
+  highlight();
+})();
+</script>
+</body>
+</html>

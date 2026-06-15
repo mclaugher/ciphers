@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fffff8">
+<title>Lesson 03 · The Vigenère Cipher</title>
+<style>
+  :root {
+    --ink:#111; --paper:#fffff8; --accent:#5b3a86; --accent2:#9a6a00;
+    --muted:#6b6b60; --rule:#dcdccb; --good:#1d6b3a; --bad:#9a2a2a;
+    --panel:#f4f4ea; --bar:#9b86c4; --bar2:#e7e0f2; --mark:#f6e58a;
+    --mono:"SF Mono","Menlo",Consolas,"Liberation Mono",monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.58;
+    max-width: 42rem; margin: 3rem auto 5rem; padding: 0 1.4rem;
+  }
+  .kicker { font-variant: small-caps; letter-spacing: .09em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .5rem; }
+  h1 { font-size: 2.1rem; line-height: 1.12; font-weight: 600; margin: 0 0 .3rem; }
+  h2 { font-size: 1.3rem; font-weight: 600; margin: 2.4rem 0 .5rem;
+       border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  .lead { color: var(--muted); font-style: italic; font-size: 1.06rem; }
+  p { margin: .85rem 0; }
+  strong { font-weight: 600; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  sup a { text-decoration: none; font-size: .7em; padding: 0 1px; }
+  code, .mono { font-family: var(--mono); }
+  .cipher { font-family: var(--mono); letter-spacing: .12em; background: #efeede;
+            padding: .08em .3em; border-radius: 4px; }
+  .keyidea { border-left: 4px solid var(--accent2); background: #fcf7ec;
+             padding: .7rem 1rem; margin: 1.4rem 0; border-radius: 0 8px 8px 0; }
+  .keyidea .tag { font-variant: small-caps; letter-spacing: .07em; color: var(--accent2);
+                  font-size: .78rem; display:block; margin-bottom: .2rem; }
+  .panel { border: 1px solid var(--rule); background: var(--panel);
+           border-radius: 10px; padding: 1.1rem 1.2rem; margin: 1.4rem 0; }
+  .panel h3 { margin: 0 0 .2rem; font-size: 1.02rem; font-weight: 600; }
+  .panel .hint { color: var(--muted); font-size: .86rem; margin: 0 0 .9rem; }
+  .row { display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; margin:.5rem 0; }
+  label.lbl { font-size: .9rem; color: var(--muted); }
+  input[type=text], input[type=number] {
+    font-family: var(--mono); font-size: 1rem; padding: .45rem .55rem;
+    border: 1px solid #c7c7b4; border-radius: 6px; background:#fff; letter-spacing: .06em; }
+  input[type=text] { flex: 1 1 200px; }
+  input[type=number] { width: 5rem; }
+  button { font: inherit; font-size: .92rem; cursor: pointer; border:1px solid var(--accent);
+           background:#fff; color: var(--accent); border-radius: 6px; padding: .4rem .8rem; }
+  button:hover { background: var(--accent); color:#fff; }
+  button.toggled { background: var(--accent); color:#fff; }
+  .align { font-family: var(--mono); font-size: 1rem; line-height: 1.6; white-space: pre;
+           overflow-x:auto; background:#fff; border:1px dashed #c7c7b4; border-radius:6px;
+           padding:.6rem .7rem; margin-top:.6rem; -webkit-overflow-scrolling: touch; }
+  .align .pl { color: var(--ink); }
+  .align .ky { color: var(--accent2); }
+  .align .ci { color: var(--accent); font-weight: 700; }
+  /* frequency bars (A–Z) */
+  .azbars { display:flex; align-items:flex-end; gap:2px; height:8rem; margin:.7rem 0 .3rem;
+            border-bottom:1px solid var(--rule); padding-bottom:2px; }
+  .azbars .col { flex:1 1 0; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; height:100%; }
+  .azbars .b { width:100%; background:var(--bar); border-radius:2px 2px 0 0; transition:height .35s ease; }
+  .azbars .col.e .b { background: var(--accent); }
+  .azbars .lab { font-family:var(--mono); font-size:.6rem; color:var(--muted); margin-top:2px; }
+  .flatnote { font-size:.9rem; color:var(--muted); min-height:1.2em; }
+  /* kasiski */
+  .ct { font-family: var(--mono); font-size:1rem; letter-spacing:.16em; line-height:1.9;
+        background:#fff; border:1px dashed #c7c7b4; border-radius:6px; padding:.6rem .7rem;
+        word-break: break-word; }
+  .ct mark { background: var(--mark); border-radius:3px; padding:.05em .1em; font-weight:700; }
+  .feedback { margin-top:.6rem; font-size:.95rem; min-height:1.2em; }
+  .feedback.good { color: var(--good); }
+  .feedback.bad  { color: var(--bad); }
+  .quiz { margin: 1rem 0 0; }
+  .q { margin: 1.3rem 0; }
+  .q .stem { font-weight: 600; margin-bottom: .5rem; }
+  .opts { display:flex; flex-direction:column; gap:.45rem; }
+  .opt { text-align:left; border:1px solid #c7c7b4; background:#fff; color:var(--ink);
+         border-radius:7px; padding:.5rem .7rem; font-size:.97rem; }
+  .opt:hover { border-color: var(--accent); background:#faf7ff; color: var(--ink); }
+  .opt.correct { border-color: var(--good); background:#eef7f0; color:#14502b; }
+  .opt.wrong   { border-color: var(--bad);  background:#f9eded; color:#6e1f1f; }
+  .q .explain { font-size:.88rem; color: var(--muted); margin-top:.45rem; min-height:1em; }
+  .q .explain.good { color: var(--good); }
+  .q .explain.bad  { color: var(--bad); }
+  .primary { border:1px solid var(--accent); border-radius:10px; padding:1rem 1.2rem;
+             margin:1.6rem 0; background:#faf7ff; }
+  .primary .tag { font-variant: small-caps; letter-spacing:.07em; color:var(--accent); font-size:.78rem; }
+  .teacher { background:#fcf7ec; border:1px dashed var(--accent2); border-radius:10px;
+             padding:.9rem 1.1rem; margin:1.6rem 0; font-size:.95rem; }
+  .nav { display:flex; gap:1rem; flex-wrap:wrap; margin-top:2rem; }
+  .card { flex:1 1 14rem; border:1px solid var(--rule); border-radius:10px; padding:.9rem 1rem; background:#fff; }
+  .card .tag { font-variant: small-caps; letter-spacing:.07em; color:var(--muted); font-size:.74rem; }
+  .card .title { font-weight:600; margin:.15rem 0; }
+  .card .desc { font-size:.86rem; color:var(--muted); }
+  footer { margin-top:2.6rem; padding-top:1rem; border-top:1px solid var(--rule);
+           color:var(--muted); font-size:.82rem; }
+  footer ol { margin:.4rem 0; padding-left:1.3rem; }
+  footer a { color: var(--accent); }
+  @media (max-width: 34rem) {
+    body { font-size: 17px; line-height: 1.5; margin: 1.4rem auto 3rem; padding: 0 1.05rem; }
+    h1 { font-size: 1.65rem; }
+    h2 { font-size: 1.18rem; margin: 1.9rem 0 .4rem; }
+    .lead { font-size: 1rem; }
+    .panel, .primary, .teacher, .keyidea { padding: .85rem .9rem; }
+    .row { gap: .5rem; }
+    input[type=text] { flex: 1 1 100%; font-size: 16px; padding: .6rem .6rem; }
+    .row button { flex: 1 1 auto; padding: .6rem .7rem; }
+    .opt { padding: .7rem .8rem; font-size: 1rem; }
+    .nav { flex-direction: column; gap: .8rem; }
+    .azbars { height: 6rem; }
+  }
+  @media print {
+    body { margin:0; max-width:none; font-size:11pt; }
+    .panel, .primary, .teacher, .card { background:none !important; }
+    button { display:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · Lesson 03 · Classical, by hand</div>
+  <h1>The Vigenère Cipher</h1>
+  <p class="lead">In Lesson 02 you broke a cipher by counting letters. Now meet the cipher built to
+  erase the very thing you counted — the one Europe called <em>le chiffre indéchiffrable</em>, the
+  indecipherable cipher, for three hundred years.</p>
+
+  <p><strong>Where we left off.</strong> Frequency analysis crushed substitution because each letter
+  wore <em>one</em> disguise: <span class="cipher">E</span> always became the same letter, so its
+  12.7% spike showed straight through. The fix almost suggests itself — what if
+  <span class="cipher">E</span> wore a <em>different</em> disguise each time it appeared?</p>
+
+  <h2>1 · One keyword, many Caesars</h2>
+  <p>The Vigenère cipher is a <strong>polyalphabetic</strong> substitution: instead of one shifted
+  alphabet, it uses 26 of them — the rows of the <a href="../reference/vigenere-tableau.html">Vigenère
+  tableau</a> — and a <strong>keyword</strong> decides which row enciphers each letter.<sup><a href="#s1">1</a></sup>
+  Write the keyword over and over above your message; each letter is then just a Caesar shift by its
+  key letter (<span class="cipher">C = (P + K) mod 26</span>).<sup><a href="#s1">1</a></sup></p>
+
+  <p>So Vigenère is nothing more exotic than <em>Lesson 01's Caesar cipher, with the shift changing
+  every letter.</em> The keyword is the key.</p>
+
+  <div class="panel">
+    <h3>Encrypt &amp; decrypt by hand</h3>
+    <p class="hint">Type a keyword and a message. The middle row shows the repeating key riding
+    along; each letter gets its own shift.</p>
+    <div class="row">
+      <label class="lbl" for="kw">Keyword:</label>
+      <input type="text" id="kw" value="LEMON" autocomplete="off" spellcheck="false" style="flex:0 1 9rem">
+      <button id="mode-enc" type="button" class="toggled">Encrypt</button>
+      <button id="mode-dec" type="button">Decrypt</button>
+    </div>
+    <div class="row">
+      <label class="lbl" for="vin">Message:</label>
+      <input type="text" id="vin" value="ATTACK AT DAWN" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="align" id="valign" aria-live="polite"></div>
+  </div>
+
+  <h2>2 · Why it hid the fingerprint</h2>
+  <p>Here is the magic. Because the shift changes with every key letter, a single plaintext letter
+  scatters across <em>many</em> ciphertext letters. The towering <span class="cipher">E</span> spike
+  gets smeared across the whole alphabet — and the language fingerprint that doomed substitution
+  simply vanishes.</p>
+
+  <div class="panel">
+    <h3>Watch the fingerprint flatten</h3>
+    <p class="hint">The same English passage, counted three ways. Substitution just relabels the
+    spikes; Vigenère levels them.</p>
+    <div class="row">
+      <button id="src-plain" type="button" class="toggled">Plain English</button>
+      <button id="src-sub" type="button">Monoalphabetic substitution</button>
+      <button id="src-vig" type="button">Vigenère (9-letter key)</button>
+    </div>
+    <div class="azbars" id="azbars" aria-hidden="true"></div>
+    <p class="flatnote" id="flatnote"></p>
+  </div>
+
+  <div class="keyidea">
+    <span class="tag">Key idea</span>
+    A monoalphabetic cipher preserves the <em>shape</em> of the language; a polyalphabetic cipher
+    flattens it. That is why frequency analysis — unstoppable against substitution — hits a wall
+    here. For 300 years, that wall held.<sup><a href="#s1">1</a></sup>
+  </div>
+
+  <h2>3 · The crack that finally worked</h2>
+  <p>The break came from a quiet observation, made by <strong>Charles Babbage</strong> around 1854
+  (he never published) and later by <strong>Friedrich Kasiski</strong> in 1863.<sup><a href="#s2">2</a></sup>
+  It is this: <em>a repeating key must leave a repeating trace.</em> When a common word like
+  <span class="cipher">THE</span> happens to line up with the same slice of the keyword twice, it
+  encrypts to the <em>same</em> ciphertext both times. The <strong>distance</strong> between those
+  repeats must be a multiple of the key length.</p>
+
+  <p>So measure the gaps between repeated chunks, take their greatest common divisor, and you have
+  recovered the key length — without knowing the key.</p>
+
+  <div class="panel">
+    <h3>Find the key length (Kasiski's method)</h3>
+    <p class="hint">A Vigenère intercept. The repeated block <span class="cipher">HIMFRDYD</span> is
+    highlighted — count the gap, fold in the other repeats, and find the key length.</p>
+    <div class="ct" id="kct"></div>
+    <p style="margin:.8rem 0 .2rem"><strong>Repeat distances found:</strong>
+      <span class="cipher">60</span>, <span class="cipher">45</span>, <span class="cipher">20</span>.
+      Their greatest common divisor is the key length.</p>
+    <div class="row">
+      <label class="lbl" for="klen">Key length =</label>
+      <input type="number" id="klen" min="1" max="20" placeholder="?">
+      <button id="klen-check" type="button">Check</button>
+      <button id="klen-hint" type="button">How do I take a GCD?</button>
+    </div>
+    <div class="feedback" id="kfb" aria-live="polite"></div>
+  </div>
+
+  <div class="keyidea">
+    <span class="tag">The payoff — and the next lesson</span>
+    Once you know the key length is <em>n</em>, the spell breaks. Every <em>n</em>-th letter was
+    enciphered with the <em>same</em> key letter — so the message is really
+    <em>n</em> interleaved <strong>Caesar ciphers</strong>. Split them into columns and you crack
+    each one with the <a href="../reference/english-letter-frequency.html">frequency analysis</a>
+    from Lesson 02. The "indecipherable" cipher collapses into the two ciphers you already beat.
+  </div>
+
+  <h2>4 · Check your understanding</h2>
+  <p>From memory — no scrolling back. The effort of recall is what makes it stick.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <div class="primary">
+    <span class="tag">Primary source — watch &amp; read next</span>
+    <p style="margin:.3rem 0 0">Khan Academy, <a href="https://www.khanacademy.org/computing/computer-science/cryptography/crypt/v/polyalphabetic-cipher"><strong>“Polyalphabetic cipher”</strong></a>
+    (Brit Cruise) for the moving picture;<sup><a href="#s3">3</a></sup> then Simon Singh's
+    <a href="https://simonsingh.net/cryptography/"><em>The Code Book</em></a>, Chapter 2–3, for the
+    full drama of Babbage breaking the unbreakable.<sup><a href="#s4">4</a></sup></p>
+  </div>
+
+  <div class="teacher">
+    <strong>I'm your teacher — use me.</strong> Want to see the intercept above fully decoded
+    column by column? Curious why a <em>longer</em> key is safer, or what happens if the key is as
+    long as the message itself (that's the one-time pad, and it's coming)? Ask. When you can explain
+    in your own words <em>why a repeating key leaks its length</em>, tell me — that's my signal to
+    log a learning record and open <strong>Lesson 04: Breaking Vigenère</strong>, where you finish
+    the crack you just started.
+  </div>
+
+  <div class="nav">
+    <div class="card">
+      <div class="tag">Reference</div>
+      <div class="title"><a href="../reference/vigenere-tableau.html">The Vigenère Tableau</a></div>
+      <div class="desc">The 26×26 tabula recta, the encrypt/decrypt rule, and a worked example. Keep it open.</div>
+    </div>
+    <div class="card">
+      <div class="tag">Up next</div>
+      <div class="title">Lesson 04 — Breaking Vigenère</div>
+      <div class="desc">Take the key length you just found, split the message into columns, and crack
+      each Caesar by frequency. The full kill. Ask me to build it.</div>
+    </div>
+  </div>
+
+  <footer>
+    <strong>Sources</strong>
+    <ol>
+      <li id="s1"><a href="https://en.wikipedia.org/wiki/Vigen%C3%A8re_cipher">Vigenère cipher — Wikipedia</a>
+        (polyalphabetic mechanics, tabula recta, keyword, C = (P+K) mod 26; "le chiffre indéchiffrable";
+        Bellaso 1553, misattribution to Vigenère).</li>
+      <li id="s2"><a href="https://en.wikipedia.org/wiki/Kasiski_examination">Kasiski examination — Wikipedia</a>
+        (Babbage c. 1854 unpublished, Kasiski 1863; repeated sequences, gap distances, GCD = key length, then per-column frequency analysis).</li>
+      <li id="s3"><a href="https://www.khanacademy.org/computing/computer-science/cryptography/crypt/v/polyalphabetic-cipher">Polyalphabetic cipher — Khan Academy</a> (Brit Cruise).</li>
+      <li id="s4"><a href="https://simonsingh.net/cryptography/">The Code Book — Simon Singh</a>.</li>
+    </ol>
+    Lesson 03 of the <strong>Ciphers</strong> teaching workspace · learned by hand.
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+  function mod(n){ return ((n % 26) + 26) % 26; }
+  function cleanKey(k){ return (k || '').toUpperCase().replace(/[^A-Z]/g, ''); }
+
+  /* ===================== §1 encrypt / decrypt ===================== */
+  var kw = document.getElementById('kw');
+  var vin = document.getElementById('vin');
+  var valign = document.getElementById('valign');
+  var bEnc = document.getElementById('mode-enc'), bDec = document.getElementById('mode-dec');
+  var decrypt = false;
+
+  function vigenere(){
+    var key = cleanKey(kw.value), text = vin.value.toUpperCase();
+    var pl = '', ky = '', ci = '', ki = 0;
+    if (!key){ valign.textContent = 'Enter a keyword.'; return; }
+    for (var i = 0; i < text.length; i++){
+      var c = text[i];
+      if (c >= 'A' && c <= 'Z'){
+        var k = key.charCodeAt(ki % key.length) - 65;
+        var s = decrypt ? -k : k;
+        var o = String.fromCharCode(65 + mod(c.charCodeAt(0) - 65 + s));
+        pl += c; ky += key[ki % key.length]; ci += o; ki++;
+      } else { pl += c; ky += ' '; ci += c; }
+    }
+    var lblIn = decrypt ? 'cipher ' : 'plain  ';
+    var lblOut = decrypt ? 'plain  ' : 'cipher ';
+    valign.innerHTML =
+      '<span class="pl">' + lblIn + pl + '</span>\n' +
+      '<span class="ky">key    ' + ky + '</span>\n' +
+      '<span class="ci">' + lblOut + ci + '</span>';
+  }
+  function setMode(d){ decrypt = d; bEnc.classList.toggle('toggled', !d); bDec.classList.toggle('toggled', d); vigenere(); }
+  bEnc.addEventListener('click', function(){ setMode(false); });
+  bDec.addEventListener('click', function(){ setMode(true); });
+  kw.addEventListener('input', vigenere);
+  vin.addEventListener('input', vigenere);
+  vigenere();
+
+  /* ===================== §2 frequency flattening ===================== */
+  var DEMO = ('THE VIGENERE CIPHER WAS CALLED THE INDECIPHERABLE CIPHER BECAUSE IT HID THE ' +
+    'TELLTALE FINGERPRINT OF LANGUAGE FOR THREE HUNDRED YEARS NO ONE COULD BREAK IT AND KINGS AND ' +
+    'GENERALS TRUSTED IT WITH THEIR DEEPEST SECRETS UNTIL A QUIET ENGLISH GENIUS NOTICED THAT A ' +
+    'REPEATING KEY MUST LEAVE A REPEATING TRACE IN THE CIPHERTEXT').replace(/[^A-Z]/g, '');
+  var SUBKEY = 'QWERTYUIOPASDFGHJKLZXCVBNM';   // a fixed monoalphabetic scramble
+  var FREQKEY = 'FREQUENCY';                    // 9-letter Vigenère key (fittingly)
+
+  function freqOf(text){
+    var c = {}; for (var i = 0; i < 26; i++) c[String.fromCharCode(65+i)] = 0;
+    text.replace(/[A-Z]/g, function(ch){ c[ch]++; return ch; });
+    return c;
+  }
+  function asSub(text){ return text.replace(/[A-Z]/g, function(ch){ return SUBKEY[ch.charCodeAt(0)-65]; }); }
+  function asVig(text){
+    var ki = 0; return text.replace(/[A-Z]/g, function(ch){
+      var k = FREQKEY.charCodeAt(ki++ % FREQKEY.length) - 65;
+      return String.fromCharCode(65 + mod(ch.charCodeAt(0) - 65 + k));
+    });
+  }
+  var barsEl = document.getElementById('azbars');
+  var flatnote = document.getElementById('flatnote');
+  var bars = [];
+  for (var i = 0; i < 26; i++){
+    var col = document.createElement('div'); col.className = 'col';
+    var b = document.createElement('div'); b.className = 'b'; b.style.height = '0%';
+    var lab = document.createElement('div'); lab.className = 'lab'; lab.textContent = String.fromCharCode(65+i);
+    col.appendChild(b); col.appendChild(lab); barsEl.appendChild(col); bars.push({col:col, b:b});
+  }
+  function showFreq(which){
+    var text = which === 'sub' ? asSub(DEMO) : which === 'vig' ? asVig(DEMO) : DEMO;
+    var c = freqOf(text), max = 0;
+    for (var L in c) if (c[L] > max) max = c[L];
+    for (var i = 0; i < 26; i++){
+      var L = String.fromCharCode(65+i);
+      bars[i].b.style.height = (max ? c[L]/max*100 : 0).toFixed(1) + '%';
+      bars[i].col.classList.toggle('e', which === 'plain' && L === 'E');
+    }
+    flatnote.innerHTML = which === 'plain'
+      ? 'Plain English: a jagged skyline. <strong>E</strong> towers over everything — the fingerprint Lesson 02 exploited.'
+      : which === 'sub'
+        ? 'Substitution: <em>same skyline, different labels.</em> The tallest bar is just E in disguise — frequency analysis still wins.'
+        : 'Vigenère: the skyline is levelled. No single bar betrays E, so letter-counting alone fails. <em>This</em> is why it held for centuries.';
+  }
+  var srcBtns = { plain:document.getElementById('src-plain'), sub:document.getElementById('src-sub'), vig:document.getElementById('src-vig') };
+  function selectSrc(which){
+    for (var k in srcBtns) srcBtns[k].classList.toggle('toggled', k === which);
+    showFreq(which);
+  }
+  srcBtns.plain.addEventListener('click', function(){ selectSrc('plain'); });
+  srcBtns.sub.addEventListener('click', function(){ selectSrc('sub'); });
+  srcBtns.vig.addEventListener('click', function(){ selectSrc('vig'); });
+  selectSrc('plain');
+
+  /* ===================== §3 Kasiski key-length finder ===================== */
+  var KCIPHER = 'HIMFRDYDFBFRPSQHIEVNWPZCGDYDFRYHQFJPQGGGDIZRSZVTSYAEFCANIMBQHIMFRDYDSGZAUB';
+  var REPEAT = 'HIMFRDYD';
+  var kct = document.getElementById('kct');
+  (function renderKct(){
+    var html = '', i = 0;
+    while (i < KCIPHER.length){
+      if (KCIPHER.substr(i, REPEAT.length) === REPEAT){
+        html += '<mark>' + REPEAT + '</mark>'; i += REPEAT.length;
+      } else { html += KCIPHER[i]; i++; }
+    }
+    kct.innerHTML = html;
+  })();
+
+  var klen = document.getElementById('klen'), kfb = document.getElementById('kfb');
+  document.getElementById('klen-check').addEventListener('click', function(){
+    var v = parseInt(klen.value, 10);
+    if (!v){ kfb.className = 'feedback'; kfb.textContent = 'Type a number — the GCD of 60, 45 and 20.'; return; }
+    if (v === 5){
+      kfb.className = 'feedback good';
+      kfb.innerHTML = '✓ The key length is <strong>5</strong> — gcd(60, 45, 20) = 5. ' +
+        'So every 5th letter shares one shift: the message is <strong>5 interleaved Caesar ciphers</strong>. ' +
+        '(The key was <span class="mono">LEMON</span>, and the message begins ' +
+        '<strong>“WE ARE SURROUNDED…”</strong>) Finishing that split is Lesson 04. Tell your teacher.';
+    } else if (v === 15 || v === 20 || v === 60){
+      kfb.className = 'feedback bad';
+      kfb.textContent = '✗ Close — that divides some gaps but not all three. The key length must divide ' +
+        '60 AND 45 AND 20. The largest number that divides all three is smaller.';
+    } else {
+      kfb.className = 'feedback bad';
+      kfb.textContent = '✗ Not quite. Find the greatest number that divides 60, 45 and 20 with no remainder.';
+    }
+  });
+  document.getElementById('klen-hint').addEventListener('click', function(){
+    kfb.className = 'feedback';
+    kfb.innerHTML = 'A GCD is the biggest number that divides each gap evenly. ' +
+      '60 = 5·12, 45 = 5·9, 20 = 5·4 — the largest factor they all share is <strong>5</strong>.';
+  });
+
+  /* ===================== §4 quiz ===================== */
+  var QUIZ = [
+    {
+      stem: 'What does the keyword choose at each letter?',
+      options: [
+        { t: 'A different shift for each letter', ok: true },
+        { t: 'A single shift for every letter', ok: false },
+        { t: 'A whole new alphabet of symbols', ok: false },
+        { t: 'A random reordering of the words', ok: false }
+      ],
+      good: 'Right — each key letter sets that position’s Caesar shift, so the shift keeps changing.',
+      bad:  'A single fixed shift is just Caesar; Vigenère changes the shift every letter via the key.'
+    },
+    {
+      stem: 'Why did Vigenère defeat simple frequency analysis?',
+      options: [
+        { t: 'Each letter takes on many disguises', ok: true },
+        { t: 'Each letter keeps its one disguise', ok: false },
+        { t: 'Every message becomes far too short', ok: false },
+        { t: 'Every keyword is far too long', ok: false }
+      ],
+      good: 'Exactly — one plaintext letter scatters across many cipher letters, flattening the counts.',
+      bad:  'Keeping one disguise per letter describes substitution — and that is exactly what frequency analysis breaks.'
+    },
+    {
+      stem: 'What finally betrays the secret key length?',
+      options: [
+        { t: 'Repeated chunks at regular spacing intervals', ok: true },
+        { t: 'The single most common ciphertext letter', ok: false },
+        { t: 'The total count of distinct letters', ok: false },
+        { t: 'The length of the longest word', ok: false }
+      ],
+      good: 'Yes — the gap between identical repeats is a multiple of the key length; their GCD reveals it.',
+      bad:  'Counting letters fails here (the point of §2). It is the spacing of repeats that leaks the length.'
+    }
+  ];
+  var quizEl = document.getElementById('quiz');
+  QUIZ.forEach(function(q, qi){
+    var wrap = document.createElement('div'); wrap.className = 'q';
+    var stem = document.createElement('div'); stem.className = 'stem';
+    stem.textContent = (qi + 1) + '. ' + q.stem; wrap.appendChild(stem);
+    var opts = document.createElement('div'); opts.className = 'opts';
+    var explain = document.createElement('div'); explain.className = 'explain';
+    q.options.forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'opt'; b.textContent = o.t;
+      b.addEventListener('click', function(){
+        if (o.ok){
+          b.className = 'opt correct';
+          explain.className = 'explain good'; explain.textContent = '✓ ' + q.good;
+          Array.prototype.forEach.call(opts.children, function(c){ c.disabled = true; });
+        } else {
+          b.className = 'opt wrong';
+          explain.className = 'explain bad'; explain.textContent = '✗ ' + q.bad + ' Try again.';
+        }
+      });
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts); wrap.appendChild(explain);
+    quizEl.appendChild(wrap);
+  });
+})();
+</script>
+</body>
+</html>

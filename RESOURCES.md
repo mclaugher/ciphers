@@ -35,6 +35,12 @@ memory. Wisdom comes from the communities at the bottom.
 - [Arab Code Breakers — Simon Singh](https://simonsingh.net/media/articles/maths-and-science/arab-code-breakers/)
   & [al-Kindi's *Manuscript on Deciphering Cryptographic Messages* (c. 850 CE) — History of Information](https://historyofinformation.com/detail.php?id=3162)
   Use for: the origin of frequency analysis (al-Kindi, Baghdad, ~850 CE), Lesson 02's primary source.
+- [Wikipedia — Vigenère cipher](https://en.wikipedia.org/wiki/Vigen%C3%A8re_cipher)
+  & [Tabula recta](https://en.wikipedia.org/wiki/Tabula_recta). Use for: polyalphabetic mechanics,
+  C=(P+K) mod 26, "le chiffre indéchiffrable", history (Trithemius/Bellaso/misattribution).
+- [Wikipedia — Kasiski examination](https://en.wikipedia.org/wiki/Kasiski_examination)
+  Use for: breaking Vigenère — Babbage (c.1854)/Kasiski (1863), repeated-sequence gaps, GCD = key
+  length, then per-column frequency analysis. Lesson 03–04.
 
 ## Wisdom (Communities)
 
@@ -52,4 +58,7 @@ memory. Wisdom comes from the communities at the bottom.
   approach modern crypto.
 - ~~No frequency-table reference doc built yet~~ — **done**: `reference/english-letter-frequency.html`
   (Lesson 02). Verify its percentages against a second corpus if precision ever matters.
-- No Vigenère / Kasiski source vetted yet — find one before Lesson 03.
+- ~~No Vigenère / Kasiski source vetted yet~~ — **done** (Wikipedia Vigenère + Kasiski; Singh
+  Code Book ch. 2–3 for narrative; Khan Academy polyalphabetic video as primary watch).
+- Lesson 04 (full Vigenère break) will need a worked column-split example — generate one like the
+  Kasiski intercept in Lesson 03 (key LEMON, "WE ARE SURROUNDED…").

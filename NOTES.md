@@ -37,3 +37,20 @@ Working notes on how to teach this learner. Not a journal — preferences and co
     glossary terms. Watch for: can they crack the intercept *without* the "starter" button, and
     do they reach for E→most-common unprompted? Math-appetite question (NOTES, open) still open —
     they met 26!/factorial here; gauge reaction.
+- Lesson 03 — The Vigenère Cipher: created. Three interactives: encrypt/decrypt with repeating-key
+  alignment; a frequency-flattening demo (plain vs substitution vs Vigenère bars — the visual
+  "why it's strong"); and a Kasiski key-length finder (intercept key=LEMON, "WE ARE SURROUNDED…",
+  GCD of gaps 60/45/20 = 5). Built `vigenere-tableau.html` reference card alongside.
+  - Deliberate structure: Lesson 03 teaches the cipher + the *idea* of the break (repeating key
+    leaks its length) but stops before the full column-by-column crack — that's **Lesson 04**, to
+    keep within working memory. Throughline made explicit: Vigenère = Caesar with a moving shift;
+    breaking it = key-length (Kasiski) + Lesson-02 frequency analysis per column.
+  - User said "keep building lessons" — proceeded straight from L02 to L03 without a mastery check.
+    Still no learning records / glossary promotion (no direct evidence yet). If they keep saying
+    "continue," consider a light retrieval check before L04 to avoid building on sand.
+
+## Pacing observations
+- 2026-06-15: User is in "keep building" mode (batch-consuming lessons) rather than working through
+  the interactives between sessions. Lessons are accumulating faster than evidence of mastery. Not a
+  problem yet, but the first learning record should wait for a real signal (a solved intercept, a
+  question that shows a misconception, or an explicit "I've got this").
