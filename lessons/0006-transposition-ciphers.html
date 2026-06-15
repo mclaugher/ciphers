@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fffff8">
+<title>Lesson 06 · Transposition Ciphers</title>
+<style>
+  :root {
+    --ink:#111; --paper:#fffff8; --accent:#5b3a86; --accent2:#9a6a00;
+    --muted:#6b6b60; --rule:#dcdccb; --good:#1d6b3a; --bad:#9a2a2a;
+    --panel:#f4f4ea; --cell:#fff; --fill:#efe6fb;
+    --mono:"SF Mono","Menlo",Consolas,"Liberation Mono",monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.58;
+    max-width: 42rem; margin: 3rem auto 5rem; padding: 0 1.4rem;
+  }
+  .kicker { font-variant: small-caps; letter-spacing: .09em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .5rem; }
+  h1 { font-size: 2.1rem; line-height: 1.12; font-weight: 600; margin: 0 0 .3rem; }
+  h2 { font-size: 1.3rem; font-weight: 600; margin: 2.4rem 0 .5rem;
+       border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  .lead { color: var(--muted); font-style: italic; font-size: 1.06rem; }
+  p { margin: .85rem 0; }
+  strong { font-weight: 600; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  sup a { text-decoration: none; font-size: .7em; padding: 0 1px; }
+  code, .mono { font-family: var(--mono); }
+  .cipher { font-family: var(--mono); letter-spacing: .1em; background: #efeede;
+            padding: .08em .3em; border-radius: 4px; }
+  .keyidea { border-left: 4px solid var(--accent2); background: #fcf7ec;
+             padding: .7rem 1rem; margin: 1.4rem 0; border-radius: 0 8px 8px 0; }
+  .keyidea .tag { font-variant: small-caps; letter-spacing: .07em; color: var(--accent2);
+                  font-size: .78rem; display:block; margin-bottom: .2rem; }
+  .panel { border: 1px solid var(--rule); background: var(--panel);
+           border-radius: 10px; padding: 1.1rem 1.2rem; margin: 1.4rem 0; }
+  .panel h3 { margin: 0 0 .2rem; font-size: 1.02rem; font-weight: 600; }
+  .panel .hint { color: var(--muted); font-size: .86rem; margin: 0 0 .9rem; }
+  .row { display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; margin:.5rem 0; }
+  label.lbl { font-size: .9rem; color: var(--muted); }
+  input[type=text] { font-family: var(--mono); font-size: 1rem; padding: .45rem .55rem;
+                     border: 1px solid #c7c7b4; border-radius: 6px; background:#fff;
+                     flex: 1 1 200px; letter-spacing: .08em; text-transform: uppercase; }
+  input[type=range] { flex: 1 1 160px; accent-color: var(--accent); }
+  .pill { font-family: var(--mono); font-weight: 700; color:#fff; background: var(--accent);
+          border-radius: 999px; padding: .12em .7em; font-size: .95rem; min-width: 2.2em;
+          display:inline-block; text-align:center; }
+  button { font: inherit; font-size: .92rem; cursor: pointer; border:1px solid var(--accent);
+           background:#fff; color: var(--accent); border-radius: 6px; padding: .4rem .8rem; }
+  button:hover { background: var(--accent); color:#fff; }
+  .out { font-family: var(--mono); font-size: 1.05rem; letter-spacing: .14em;
+         background:#fff; border:1px dashed #c7c7b4; border-radius:6px; padding:.5rem .6rem;
+         margin-top:.5rem; word-break: break-word; min-height: 1.4em; }
+  /* grids */
+  .gridwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:.7rem 0; }
+  table.tg { border-collapse: collapse; font-family: var(--mono); }
+  table.tg td, table.tg th { width:1.7rem; height:1.7rem; text-align:center; border:1px solid #d8d8c8;
+                             padding:0; font-size:.95rem; }
+  table.tg th { color: var(--accent); font-weight:700; background:#f4f4ea; }
+  table.tg th .rank { display:block; font-size:.6rem; color:var(--muted); font-weight:400; }
+  table.tg td { background: var(--cell); }
+  table.tg td.pad { color:#c7c7b4; }
+  /* rail fence grid */
+  table.rf td { width:1.5rem; height:1.5rem; }
+  table.rf td.on { background: var(--fill); color: var(--accent); font-weight:700; }
+  table.rf td.off { color:#e2e2d4; }
+  .feedback { margin-top:.6rem; font-size:.95rem; min-height:1.2em; }
+  .feedback.good { color: var(--good); }
+  .feedback.bad  { color: var(--bad); }
+  .quiz { margin: 1rem 0 0; }
+  .q { margin: 1.3rem 0; }
+  .q .stem { font-weight: 600; margin-bottom: .5rem; }
+  .opts { display:flex; flex-direction:column; gap:.45rem; }
+  .opt { text-align:left; border:1px solid #c7c7b4; background:#fff; color:var(--ink);
+         border-radius:7px; padding:.5rem .7rem; font-size:.97rem; }
+  .opt:hover { border-color: var(--accent); background:#faf7ff; color: var(--ink); }
+  .opt.correct { border-color: var(--good); background:#eef7f0; color:#14502b; }
+  .opt.wrong   { border-color: var(--bad);  background:#f9eded; color:#6e1f1f; }
+  .q .explain { font-size:.88rem; color: var(--muted); margin-top:.45rem; min-height:1em; }
+  .q .explain.good { color: var(--good); }
+  .q .explain.bad  { color: var(--bad); }
+  .primary { border:1px solid var(--accent); border-radius:10px; padding:1rem 1.2rem;
+             margin:1.6rem 0; background:#faf7ff; }
+  .primary .tag { font-variant: small-caps; letter-spacing:.07em; color:var(--accent); font-size:.78rem; }
+  .teacher { background:#fcf7ec; border:1px dashed var(--accent2); border-radius:10px;
+             padding:.9rem 1.1rem; margin:1.6rem 0; font-size:.95rem; }
+  .nav { display:flex; gap:1rem; flex-wrap:wrap; margin-top:2rem; }
+  .card { flex:1 1 14rem; border:1px solid var(--rule); border-radius:10px; padding:.9rem 1rem; background:#fff; }
+  .card .tag { font-variant: small-caps; letter-spacing:.07em; color:var(--muted); font-size:.74rem; }
+  .card .title { font-weight:600; margin:.15rem 0; }
+  .card .desc { font-size:.86rem; color:var(--muted); }
+  footer { margin-top:2.6rem; padding-top:1rem; border-top:1px solid var(--rule);
+           color:var(--muted); font-size:.82rem; }
+  footer ol { margin:.4rem 0; padding-left:1.3rem; }
+  footer a { color: var(--accent); }
+  @media (max-width: 34rem) {
+    body { font-size: 17px; line-height: 1.5; margin: 1.4rem auto 3rem; padding: 0 1.05rem; }
+    h1 { font-size: 1.65rem; }
+    h2 { font-size: 1.18rem; margin: 1.9rem 0 .4rem; }
+    .lead { font-size: 1rem; }
+    .panel, .primary, .teacher, .keyidea { padding: .85rem .9rem; }
+    .row button { flex: 1 1 auto; padding: .6rem .7rem; }
+    input[type=text] { flex: 1 1 100%; font-size: 16px; }
+    .opt { padding: .7rem .8rem; font-size: 1rem; }
+    .nav { flex-direction: column; gap: .8rem; }
+  }
+  @media print {
+    body { margin:0; max-width:none; font-size:11pt; }
+    .panel, .primary, .teacher, .card { background:none !important; }
+    button, input[type=range] { display:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · Lesson 06 · Classical, by hand</div>
+  <h1>Transposition Ciphers</h1>
+  <p class="lead">Every cipher you've met so far <em>replaces</em> letters. This whole family does the
+  opposite: it keeps every letter exactly as it is — and hides the message in the <em>order</em>.</p>
+
+  <p><strong>A fork in the road.</strong> Caesar, substitution, Vigenère, the one-time pad — all
+  belong to one family: <strong>substitution</strong>, where each letter is swapped for another. There
+  is a second, equally ancient family: <strong>transposition</strong>, where the letters stay but get
+  <em>rearranged</em>. The Spartans used one around the 7th century BCE — the <strong>scytale</strong>,
+  a staff you wound a strip of leather around to read the message.<sup><a href="#s1">1</a></sup></p>
+
+  <h2>1 · The rail fence — writing in a zigzag</h2>
+  <p>The simplest transposition writes the message in a zigzag across a few "rails," then reads it off
+  one rail at a time. Same letters, new order.<sup><a href="#s2">2</a></sup></p>
+
+  <div class="panel">
+    <h3>Rail fence</h3>
+    <p class="hint">Watch the zigzag fill, then read the highlighted rows left to right, top to bottom.</p>
+    <div class="row">
+      <label class="lbl" for="rf-in">Message:</label>
+      <input type="text" id="rf-in" value="WE ARE DISCOVERED" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="row">
+      <label class="lbl" for="rf-rails">Rails:</label>
+      <input type="range" id="rf-rails" min="2" max="6" value="3">
+      <span class="pill" id="rf-rails-val">3</span>
+    </div>
+    <div class="gridwrap"><table class="tg rf" id="rf-grid"></table></div>
+    <div class="out" id="rf-out" aria-live="polite"></div>
+  </div>
+
+  <h2>2 · Columnar transposition — the keyword version</h2>
+  <p>The serious by-hand transposition writes the message into a grid row by row under a keyword, then
+  reads the <em>columns</em> off in the order the keyword's letters fall alphabetically. The keyword is
+  the key.<sup><a href="#s2">2</a></sup></p>
+
+  <div class="panel">
+    <h3>Columnar transposition</h3>
+    <p class="hint">Columns are numbered by their keyword letter's place in the alphabet; read them in
+    that order (1, 2, 3 …). The final row is padded with <span class="cipher">X</span>.</p>
+    <div class="row">
+      <label class="lbl" for="ct-key">Keyword:</label>
+      <input type="text" id="ct-key" value="ZEBRA" autocomplete="off" spellcheck="false" style="flex:0 1 9rem">
+      <label class="lbl" for="ct-in">Message:</label>
+      <input type="text" id="ct-in" value="MEET ME AT THE DOCKS" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="gridwrap"><table class="tg" id="ct-grid"></table></div>
+    <div class="out" id="ct-out" aria-live="polite"></div>
+  </div>
+
+  <h2>3 · The dead giveaway — and the crack</h2>
+  <p>Transposition has a glaring tell. Because it never changes a single letter, the
+  <strong>letter frequencies are untouched</strong>: if the plaintext had fourteen E's, so does the
+  ciphertext.<sup><a href="#s2">2</a></sup> Run <a href="../reference/english-letter-frequency.html">frequency
+  analysis</a> and you'll see a perfectly normal English profile — which tells you instantly it's a
+  transposition, not a substitution. You then break it by <strong>anagramming</strong>: rearranging the
+  letters back into sense by trying the possible geometries.</p>
+
+  <p>For the rail fence, there are only a handful of rail counts to try — so, like Caesar, you can just
+  brute-force it. Below is an intercept; dial the rails until it reads as English.</p>
+
+  <div class="panel">
+    <h3>Crack the rail fence</h3>
+    <p class="hint">Ciphertext: <span class="cipher" id="rfc-ct"></span></p>
+    <div class="row">
+      <label class="lbl" for="rfc-rails">Try rails:</label>
+      <input type="range" id="rfc-rails" min="2" max="7" value="2">
+      <span class="pill" id="rfc-rails-val">2</span>
+    </div>
+    <div class="out" id="rfc-out" aria-live="polite"></div>
+    <div class="feedback" id="rfc-fb" aria-live="polite"></div>
+  </div>
+
+  <h2>4 · Why this matters more than it looks</h2>
+  <p>On its own, transposition is weak — the frequencies betray it. But something powerful happens when
+  you <em>combine</em> the two families. Substitution hides <em>which</em> letters you used;
+  transposition hides <em>where</em> they were. Claude Shannon named these two jobs
+  <strong>confusion</strong> and <strong>diffusion</strong>, and argued a strong cipher needs
+  both.<sup><a href="#s3">3</a></sup></p>
+
+  <div class="keyidea">
+    <span class="tag">Confusion &amp; diffusion — the shape of modern ciphers</span>
+    Modern block ciphers like <strong>AES</strong> are built as a <em>substitution–permutation
+    network</em>: they alternate substitution steps (confusion) with transposition steps (diffusion),
+    over and over, on bits instead of letters.<sup><a href="#s3">3</a></sup> Every cipher in this whole
+    course has been one of these two moves — modern cryptography just braids them together, many times,
+    very fast.
+  </div>
+
+  <h2>5 · Check your understanding</h2>
+  <p>From memory — the recall effort is the learning.</p>
+  <div class="quiz" id="quiz"></div>
+
+  <div class="primary">
+    <span class="tag">Primary source — read next</span>
+    <p style="margin:.3rem 0 0">Wikipedia's <a href="https://en.wikipedia.org/wiki/Transposition_cipher"><strong>Transposition
+    cipher</strong></a> for the full family and how anagramming breaks them;<sup><a href="#s2">2</a></sup>
+    and Simon Singh's <a href="https://simonsingh.net/cryptography/"><em>The Code Book</em></a> for the
+    scytale and where substitution and transposition finally merge.<sup><a href="#s4">4</a></sup></p>
+  </div>
+
+  <div class="teacher">
+    <strong>I'm your teacher — use me.</strong> Want to crack a columnar transposition by hand, or see
+    how a message can be enciphered <em>twice</em> (substitute, then transpose) for real strength?
+    <br><br>
+    And here's the fork: you've now finished the <strong>classical, by-hand toolkit</strong> your
+    mission set out — Caesar, substitution, Vigenère, transposition. The road ahead is
+    <strong>modern</strong>, and it splits. One path stays light on maths (the <em>story</em> of how
+    Diffie, Hellman, and RSA solved the key-distribution problem). The other rolls up its sleeves and
+    works the modular arithmetic by hand. Tell me which you'd enjoy, and we'll go.
+  </div>
+
+  <div class="nav">
+    <div class="card">
+      <div class="tag">Reference</div>
+      <div class="title"><a href="../reference/transposition-ciphers.html">Transposition Ciphers</a></div>
+      <div class="desc">Rail fence &amp; columnar methods, the frequency tell, anagramming, and confusion vs diffusion.</div>
+    </div>
+    <div class="card">
+      <div class="tag">Up next — the modern era</div>
+      <div class="title">Lesson 07 — The key-distribution problem</div>
+      <div class="desc">The one-time pad and every classical cipher need a shared secret first. How do
+      two strangers agree on a key in the open? The question that made modern crypto. Ask me to build it.</div>
+    </div>
+  </div>
+
+  <footer>
+    <strong>Sources</strong>
+    <ol>
+      <li id="s1"><a href="https://en.wikipedia.org/wiki/Scytale">Scytale — Wikipedia</a>
+        (ancient Spartan transposition device, ~7th century BCE).</li>
+      <li id="s2"><a href="https://en.wikipedia.org/wiki/Transposition_cipher">Transposition cipher — Wikipedia</a>
+        (rail fence, keyed columnar transposition, padding; letter frequencies unchanged; anagramming).</li>
+      <li id="s3"><a href="https://en.wikipedia.org/wiki/Confusion_and_diffusion">Confusion and diffusion — Wikipedia</a>
+        (Shannon's principles; substitution–permutation networks; AES).</li>
+      <li id="s4"><a href="https://simonsingh.net/cryptography/">The Code Book — Simon Singh</a>.</li>
+    </ol>
+    Lesson 06 of the <strong>Ciphers</strong> teaching workspace · learned by hand.
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+  function letters(s){ return (s || '').toUpperCase().replace(/[^A-Z]/g, ''); }
+
+  /* ===================== §1 rail fence encrypt + grid ===================== */
+  function railPattern(len, rails){
+    var pat = [], r = 0, dir = 1;
+    for (var i = 0; i < len; i++){
+      pat.push(r);
+      if (rails > 1){ r += dir; if (r === rails - 1) dir = -1; else if (r === 0) dir = 1; }
+    }
+    return pat;
+  }
+  function railEncrypt(text, rails){
+    var pat = railPattern(text.length, rails), rows = [];
+    for (var r = 0; r < rails; r++){ for (var i = 0; i < text.length; i++) if (pat[i] === r) rows.push(text[i]); }
+    return rows.join('');
+  }
+  var rfIn = document.getElementById('rf-in'), rfRails = document.getElementById('rf-rails');
+  var rfRailsVal = document.getElementById('rf-rails-val'), rfGrid = document.getElementById('rf-grid');
+  var rfOut = document.getElementById('rf-out');
+  function renderRail(){
+    var text = letters(rfIn.value), rails = +rfRails.value;
+    rfRailsVal.textContent = rails;
+    var pat = railPattern(text.length, rails), html = '';
+    for (var r = 0; r < rails; r++){
+      html += '<tr>';
+      for (var i = 0; i < text.length; i++){
+        html += (pat[i] === r) ? '<td class="on">' + text[i] + '</td>' : '<td class="off">·</td>';
+      }
+      html += '</tr>';
+    }
+    rfGrid.innerHTML = html || '';
+    rfOut.textContent = railEncrypt(text, rails) || ' ';
+  }
+  rfIn.addEventListener('input', renderRail);
+  rfRails.addEventListener('input', renderRail);
+  renderRail();
+
+  /* ===================== §2 columnar transposition ===================== */
+  function colOrder(key){
+    // reading order: index of the column read 1st, 2nd, … (alphabetical, ties left-to-right)
+    return key.split('').map(function(ch, i){ return { ch: ch, i: i }; })
+      .sort(function(a, b){ return a.ch === b.ch ? a.i - b.i : (a.ch < b.ch ? -1 : 1); })
+      .map(function(o){ return o.i; });
+  }
+  var ctKey = document.getElementById('ct-key'), ctIn = document.getElementById('ct-in');
+  var ctGrid = document.getElementById('ct-grid'), ctOut = document.getElementById('ct-out');
+  function renderColumnar(){
+    var key = letters(ctKey.value) || 'KEY', text = letters(ctIn.value);
+    var cols = key.length, rows = Math.max(1, Math.ceil(text.length / cols));
+    // pad
+    var padded = text; while (padded.length < cols * rows) padded += 'X';
+    var order = colOrder(key);
+    var rank = new Array(cols);                         // rank[col] = its place in reading order (1-based)
+    order.forEach(function(col, k){ rank[col] = k + 1; });
+    // header
+    var html = '<tr>';
+    for (var c = 0; c < cols; c++) html += '<th>' + key[c] + '<span class="rank">' + rank[c] + '</span></th>';
+    html += '</tr>';
+    // body
+    for (var r = 0; r < rows; r++){
+      html += '<tr>';
+      for (var c2 = 0; c2 < cols; c2++){
+        var ch = padded[r * cols + c2], isPad = (r * cols + c2) >= text.length;
+        html += '<td class="' + (isPad ? 'pad' : '') + '">' + ch + '</td>';
+      }
+      html += '</tr>';
+    }
+    ctGrid.innerHTML = html;
+    // read columns in order
+    var out = '';
+    order.forEach(function(col){ for (var r = 0; r < rows; r++) out += padded[r * cols + col]; });
+    ctOut.textContent = out || ' ';
+  }
+  ctKey.addEventListener('input', renderColumnar);
+  ctIn.addEventListener('input', renderColumnar);
+  renderColumnar();
+
+  /* ===================== §3 crack the rail fence ===================== */
+  function railDecrypt(cipher, rails){
+    var pat = railPattern(cipher.length, rails);
+    var counts = new Array(rails).fill(0);
+    pat.forEach(function(p){ counts[p]++; });
+    var rowStr = [], idx = 0;
+    for (var r = 0; r < rails; r++){ rowStr.push(cipher.substr(idx, counts[r])); idx += counts[r]; }
+    var pos = new Array(rails).fill(0), out = '';
+    for (var i = 0; i < cipher.length; i++){ var p = pat[i]; out += rowStr[p][pos[p]++]; }
+    return out;
+  }
+  var RFCIPHER = "WECRLTEERDSOEEFEAOCAIVDEN";
+  var RFANSWER = "WEAREDISCOVEREDFLEEATONCE";
+  document.getElementById('rfc-ct').textContent = RFCIPHER;
+  var rfcRails = document.getElementById('rfc-rails'), rfcRailsVal = document.getElementById('rfc-rails-val');
+  var rfcOut = document.getElementById('rfc-out'), rfcFb = document.getElementById('rfc-fb');
+  function renderCrack(){
+    var rails = +rfcRails.value;
+    rfcRailsVal.textContent = rails;
+    var guess = railDecrypt(RFCIPHER, rails);
+    rfcOut.textContent = guess;
+    if (guess === RFANSWER){
+      rfcFb.className = 'feedback good';
+      rfcFb.innerHTML = '✓ Cracked it with <strong>' + rails + ' rails</strong> — ' +
+        '<strong>“WE ARE DISCOVERED, FLEE AT ONCE.”</strong> Notice you never changed a letter; you ' +
+        'only had to find the right <em>shape</em>. That’s transposition. Tell your teacher.';
+    } else {
+      rfcFb.className = 'feedback';
+      rfcFb.textContent = 'Not English yet — try another rail count. There are only a few to test.';
+    }
+  }
+  rfcRails.addEventListener('input', renderCrack);
+  renderCrack();
+
+  /* ===================== §5 quiz ===================== */
+  var QUIZ = [
+    {
+      stem: 'How does transposition differ from substitution?',
+      options: [
+        { t: 'It reorders letters without replacing any', ok: true },
+        { t: 'It replaces letters without reordering any', ok: false },
+        { t: 'It deletes letters without replacing any', ok: false },
+        { t: 'It repeats letters without reordering any', ok: false }
+      ],
+      good: 'Right — the letters are all still there, just moved into a new order.',
+      bad:  'Replacing letters is substitution; transposition keeps the letters and rearranges them.'
+    },
+    {
+      stem: 'What instantly gives a transposition cipher away?',
+      options: [
+        { t: 'The letter frequencies still look English', ok: true },
+        { t: 'The letters become strange unfamiliar symbols', ok: false },
+        { t: 'The whole message gets much shorter', ok: false },
+        { t: 'The spacing between words always vanishes', ok: false }
+      ],
+      good: 'Exactly — letters are unchanged, so the English frequency profile survives intact.',
+      bad:  'Frequencies are untouched: a normal English profile is the signature of transposition.'
+    },
+    {
+      stem: 'What makes modern ciphers such as AES strong?',
+      options: [
+        { t: 'They combine substitution and transposition repeatedly', ok: true },
+        { t: 'They use one single enormous secret', ok: false },
+        { t: 'They keep their whole method totally', ok: false },
+        { t: 'They shift every letter by three', ok: false }
+      ],
+      good: 'Yes — alternating confusion (substitution) and diffusion (transposition) over many rounds.',
+      bad:  'Strength comes from braiding both moves — substitution and transposition — repeatedly.'
+    }
+  ];
+  var quizEl = document.getElementById('quiz');
+  QUIZ.forEach(function(q, qi){
+    var wrap = document.createElement('div'); wrap.className = 'q';
+    var stem = document.createElement('div'); stem.className = 'stem';
+    stem.textContent = (qi + 1) + '. ' + q.stem; wrap.appendChild(stem);
+    var opts = document.createElement('div'); opts.className = 'opts';
+    var explain = document.createElement('div'); explain.className = 'explain';
+    q.options.forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'opt'; b.textContent = o.t;
+      b.addEventListener('click', function(){
+        if (o.ok){
+          b.className = 'opt correct';
+          explain.className = 'explain good'; explain.textContent = '✓ ' + q.good;
+          Array.prototype.forEach.call(opts.children, function(c){ c.disabled = true; });
+        } else {
+          b.className = 'opt wrong';
+          explain.className = 'explain bad'; explain.textContent = '✗ ' + q.bad + ' Try again.';
+        }
+      });
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts); wrap.appendChild(explain);
+    quizEl.appendChild(wrap);
+  });
+})();
+</script>
+</body>
+</html>

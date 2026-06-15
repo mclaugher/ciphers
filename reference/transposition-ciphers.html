@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fffff8">
+<title>Reference · Transposition Ciphers</title>
+<style>
+  :root { --ink:#111; --paper:#fffff8; --accent:#5b3a86; --accent2:#9a6a00;
+          --muted:#6b6b60; --rule:#dcdccb; --panel:#f4f4ea; --fill:#efe6fb;
+          --mono:"SF Mono","Menlo",Consolas,"Liberation Mono",monospace; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 19px; line-height: 1.5; max-width: 44rem; margin: 3rem auto; padding: 0 1.4rem;
+  }
+  h1 { font-size: 1.7rem; line-height: 1.2; font-weight: 600; margin: 0 0 .2rem; }
+  h2 { font-size: 1.05rem; font-weight: 600; margin: 1.7rem 0 .4rem; color: var(--accent); }
+  .kicker { font-variant: small-caps; letter-spacing: .08em; color: var(--accent);
+            font-size: .82rem; margin-bottom: .6rem; }
+  p { margin: .7rem 0; }
+  .lead { color: var(--muted); font-style: italic; }
+  code, .mono { font-family: var(--mono); }
+  .step { background: var(--panel); border:1px solid var(--rule); border-radius:8px;
+          padding:.7rem .9rem; margin:.6rem 0; }
+  .step .lbl { font-variant: small-caps; letter-spacing:.06em; color: var(--accent2);
+               font-size:.74rem; display:block; margin-bottom:.2rem; }
+  .mono.block { white-space:pre; overflow-x:auto; display:block; background:#fff;
+                border:1px dashed #c7c7b4; border-radius:6px; padding:.5rem .7rem; font-size:.9rem; margin:.4rem 0; }
+  .note { color: var(--muted); font-size:.9rem; }
+  table.cmp { border-collapse:collapse; width:100%; margin:.6rem 0; font-size:.95rem; }
+  table.cmp th, table.cmp td { border:1px solid var(--rule); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  table.cmp th { background:var(--panel); font-size:.8rem; font-variant:small-caps; letter-spacing:.05em; }
+  footer { margin-top:2.2rem; padding-top:1rem; border-top:1px solid var(--rule);
+           color:var(--muted); font-size:.85rem; }
+  a { color: var(--accent); }
+  @media (max-width: 34rem) { body { font-size:17px; margin:1.4rem auto; padding:0 1.05rem; } h1 { font-size:1.45rem; } }
+  @media print { body { margin:0; max-width:none; font-size:11pt; } .step, .mono.block { background:none; } }
+</style>
+</head>
+<body>
+  <div class="kicker">Ciphers · Reference Card</div>
+  <h1>Transposition Ciphers</h1>
+  <p class="lead">The other family. Substitution changes <em>which</em> letters you write;
+  transposition keeps the letters and changes <em>where</em> they sit.</p>
+
+  <h2>Rail fence</h2>
+  <div class="step">
+    <span class="lbl">zigzag down the rails, read row by row</span>
+    Write the message in a zigzag across <code class="mono">n</code> rails, then read each rail left to
+    right, top rail first. Message <code class="mono">WEAREDISCOVEREDFLEEATONCE</code>, n = 3:
+    <span class="mono block">W . . . E . . . C . . . R . . . L . . . T . . . E
+. E . R . D . S . O . E . E . F . E . A . O . C .
+. . A . . . I . . . V . . . D . . . E . . . N . .
+read rail 1, then 2, then 3 →  WECRLTE · ERDSOEEFEAOC · AIVDEN
+ciphertext:  WECRLTEERDSOEEFEAOCAIVDEN</span>
+    <span class="note">Few possible rail counts → brute-force by trying each, like Caesar.</span>
+  </div>
+
+  <h2>Columnar transposition</h2>
+  <div class="step">
+    <span class="lbl">grid under a keyword, read columns in key order</span>
+    <ol style="margin:.3rem 0 .3rem 1.1rem; padding:0">
+      <li>Number the keyword's columns by alphabetical order of their letters (ties left→right).</li>
+      <li>Write the message into the grid <b>row by row</b>; pad the last row with nulls (e.g. X).</li>
+      <li>Read the columns <b>top to bottom</b>, in the numbered order, to get the ciphertext.</li>
+    </ol>
+    <span class="mono block">key:   Z E B R A        order: A=1 B=2 E=3 R=4 Z=5
+       5 3 2 4 1
+       M E E T M
+       E A T T H
+       E D O C K
+       S X X X X
+read order 1,2,3,4,5 →  MHKX ETOX EADX TTCX MEES</span>
+  </div>
+
+  <h2>The crack</h2>
+  <table class="cmp">
+    <tr><th>Symptom</th><th>What it means</th></tr>
+    <tr><td>Ciphertext has <b>normal English letter frequencies</b></td>
+        <td>It's a <b>transposition</b>, not a substitution — letters were moved, not swapped.</td></tr>
+    <tr><td>Letters look scrambled but all "belong"</td>
+        <td>Break by <b>anagramming</b>: try column counts / rail counts and rearrange into sense,
+            using common digraphs (TH, HE) and words to guide.</td></tr>
+  </table>
+  <p class="note">Key fact: if the plaintext had fourteen E's, so does the ciphertext. Transposition
+  cannot hide letter frequencies — only letter <em>positions</em>.</p>
+
+  <h2>Why it matters</h2>
+  <p>Alone, transposition is weak. Combined with substitution it is not: Shannon called the two jobs
+  <strong>diffusion</strong> (transposition — spread the structure out) and <strong>confusion</strong>
+  (substitution — hide the relationship to the key). Modern block ciphers like <strong>AES</strong>
+  alternate both for many rounds — a <em>substitution–permutation network</em>.</p>
+
+  <footer>
+    Reference card for the <strong>Ciphers</strong> teaching workspace ·
+    Used by <a href="../lessons/0006-transposition-ciphers.html">Lesson 06 — Transposition Ciphers</a>.<br>
+    <strong>Sources:</strong> <a href="https://en.wikipedia.org/wiki/Transposition_cipher">Transposition cipher</a>,
+    <a href="https://en.wikipedia.org/wiki/Scytale">Scytale</a>,
+    <a href="https://en.wikipedia.org/wiki/Confusion_and_diffusion">Confusion and diffusion</a> — Wikipedia.
+  </footer>
+</body>
+</html>

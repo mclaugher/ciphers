@@ -67,6 +67,18 @@ Working notes on how to teach this learner. Not a journal — preferences and co
     modern key-distribution thread (Diffie–Hellman / public key) — which I should gate on the user's
     still-unknown math appetite.
 
+- Lesson 06 — Transposition Ciphers: created. Three interactives: rail-fence encrypt (zigzag grid),
+  columnar transposition encrypt (keyword-ordered grid), and a rail-fence crack (brute-force the rail
+  count, only 3 recovers "WE ARE DISCOVERED, FLEE AT ONCE"). Covers scytale history, the
+  frequencies-unchanged tell, anagramming, and the forward link to Shannon's confusion/diffusion and
+  AES (substitution–permutation networks). Built `transposition-ciphers.html` reference.
+  - **Classical by-hand set per MISSION is now COMPLETE**: Caesar, substitution, Vigenère,
+    transposition (+ breaking Vigenère, + one-time pad as the modern hinge). 6 lessons, 7 reference
+    cards, still 0 learning records / empty glossary.
+  - Lesson 06 ends by explicitly asking the user to choose the road into modern crypto: the
+    light-on-maths *story* of Diffie–Hellman/RSA, vs working the modular arithmetic by hand. This
+    finally surfaces the long-open math-appetite question. DO use their answer to shape Lesson 07.
+
 ## Pacing observations
 - 2026-06-15: User is in "keep building" mode (batch-consuming lessons) rather than working through
   the interactives between sessions. Lessons are accumulating faster than evidence of mastery. Not a

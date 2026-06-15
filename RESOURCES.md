@@ -66,7 +66,9 @@ memory. Wisdom comes from the communities at the bottom.
 - ~~Lesson 05 (one-time pad / perfect secrecy) sourcing~~ — **done**: Wikipedia One-time pad &
   Communication Theory of Secrecy Systems (Shannon 1949); Crypto-IT two-time-pad attack; VENONA
   (Wikipedia) for the key-reuse history. See `reference/one-time-pad.html`.
-- Lesson 06 (transposition): need a by-hand source — columnar transposition + rail fence, and how
-  anagramming / multiple-anagramming breaks them. (Singh Code Book + Wikipedia Transposition cipher.)
+- ~~Lesson 06 (transposition) source~~ — **done**: Wikipedia Transposition cipher + Scytale +
+  Confusion and diffusion; see `reference/transposition-ciphers.html`.
 - Modern thread (key exchange / public key, after transposition): math-appetite still UNKNOWN —
-  gauge before committing to Diffie–Hellman/RSA, which lean on modular exponentiation.
+  gauge before committing to Diffie–Hellman/RSA, which lean on modular exponentiation. Lesson 06's
+  teacher box explicitly asks the user to pick the "light-on-maths story" vs "work the arithmetic"
+  road; use their answer. Need a vetted Diffie–Hellman/RSA source + the classic paint-mixing analogy.
